@@ -1,0 +1,808 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="The Daily Basis mortgage market dashboard by Michael Ross, NMLS #42104.">
+  <title>The Daily Basis</title>
+  <style>  :root{
+    --bg: #f3f5fa;
+    --surface: #ffffff;
+    --surface-2: #eef1f8;
+    --line: #dde2ee;
+    --ink: #101a33;
+    --ink-soft: #566082;
+    --navy: #0d2c54;
+    --navy-strong: #143a6b;
+
+    --c-rates: #0891b2;   --c-rates-soft: #d7f1f5;
+    --c-mbs:   #6d5bd0;   --c-mbs-soft:   #e7e3fb;
+    --c-cal:   #d97706;   --c-cal-soft:   #fbe9cf;
+    --c-news:  #d1436b;   --c-news-soft:  #fbe1e8;
+    --c-tool:  #0f9d6b;   --c-tool-soft:  #d9f5ea;
+
+    --up: #1f8a5a; --down: #c1443c; --flat: var(--ink-soft);
+    --shadow: 0 1px 2px rgba(16,26,51,.06), 0 10px 28px rgba(16,26,51,.07);
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg: #0a1120; --surface: #101a30; --surface-2: #16223c; --line: #24304e; --ink: #eef1fb; --ink-soft: #a9b3d1;
+      --navy: #6f9ce6; --navy-strong: #9dc0ff;
+      --c-rates: #35c7e6; --c-rates-soft: #123845;
+      --c-mbs:   #a89bf2; --c-mbs-soft:   #241f47;
+      --c-cal:   #f2ac4d; --c-cal-soft:   #3a2a0f;
+      --c-news:  #f27a9e; --c-news-soft:  #3a1826;
+      --c-tool:  #4fd9a6; --c-tool-soft:  #0f2e24;
+      --up: #4fcf8e; --down: #f0847a;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 14px 30px rgba(0,0,0,.4);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg: #0a1120; --surface: #101a30; --surface-2: #16223c; --line: #24304e; --ink: #eef1fb; --ink-soft: #a9b3d1;
+    --navy: #6f9ce6; --navy-strong: #9dc0ff;
+    --c-rates: #35c7e6; --c-rates-soft: #123845;
+    --c-mbs:   #a89bf2; --c-mbs-soft:   #241f47;
+    --c-cal:   #f2ac4d; --c-cal-soft:   #3a2a0f;
+    --c-news:  #f27a9e; --c-news-soft:  #3a1826;
+    --c-tool:  #4fd9a6; --c-tool-soft:  #0f2e24;
+    --up: #4fcf8e; --down: #f0847a;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 14px 30px rgba(0,0,0,.4);
+    color-scheme: dark;
+  }
+
+  html{ scroll-behavior:smooth; scroll-padding-top:var(--sticky-offset,92px); }
+  *{ box-sizing: border-box; }
+  body{ margin:0; background:#f3f5fa; background:var(--bg); color:#101a33; color:var(--ink); font-family:'Segoe UI',system-ui,-apple-system,BlinkMacSystemFont,sans-serif; line-height:1.45; }
+  .num{ font-family:ui-monospace,SFMono-Regular,Consolas,'Liberation Mono',monospace; font-variant-numeric: tabular-nums; }
+  h1,h2,h3,.label{ font-family:'Arial Narrow','Aptos Display','Segoe UI',system-ui,sans-serif; font-weight:700; text-wrap:balance; }
+  .label{ text-transform:uppercase; letter-spacing:.08em; font-size:.72rem; color:var(--ink-soft); font-weight:600; }
+  a{ color: var(--navy-strong); text-decoration:none; }
+  a:hover{ text-decoration:underline; }
+  button{ font-family:inherit; }
+  :focus-visible{ outline:2px solid var(--navy-strong); outline-offset:2px; }
+
+  .wrap{ max-width:1180px; margin:0 auto; padding: 0 20px 64px; }
+
+  /* ---------- Header ---------- */
+  header.top{
+    background:#ffffff; background:var(--surface);
+    border-bottom:1px solid var(--line);
+    position:relative; z-index:1;
+  }
+  .nav-dock{
+    position:sticky; top:0; z-index:1000;
+    background:#ffffff; background:var(--surface);
+    border-bottom:1px solid var(--line);
+    box-shadow:0 7px 18px rgba(16,26,51,.08);
+    isolation:isolate;
+  }
+  .top-inner{ max-width:1180px; margin:0 auto; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .brand{ display:flex; align-items:center; gap:12px; }
+  .brand-mark{
+    width:40px; height:40px; border-radius:11px;
+    background: linear-gradient(155deg, var(--navy-strong), var(--navy));
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-family:'Arial Narrow','Aptos Display','Segoe UI',system-ui,sans-serif; font-weight:700; font-size:1.15rem; flex-shrink:0;
+  }
+  .brand-text .name{ font-size:1.32rem; line-height:1.1; letter-spacing:.01em; }
+  .brand-text .sub{ font-size:.78rem; color:var(--ink-soft); font-weight:500; margin-top:2px; }
+  .top-meta{ text-align:right; font-size:.82rem; color:var(--ink-soft); }
+  .top-meta .date{ color:var(--ink); font-weight:600; }
+  .live-dot{ display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--up); margin-right:6px; box-shadow:0 0 0 3px color-mix(in srgb, var(--up) 25%, transparent); }
+
+  .quicknav{ display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px; max-width:1180px; margin:0 auto; }
+  .quicknav a{
+    font-size:.78rem; font-weight:600; color:var(--ink-soft); background:var(--surface-2);
+    border:1px solid var(--line); border-radius:999px; padding:6px 13px;
+  }
+  .quicknav a:hover{ text-decoration:none; color:var(--ink); border-color:var(--navy-strong); }
+  .data-status{max-width:1180px;margin:0 auto;padding:0 20px 10px;display:flex;align-items:center;gap:8px;font-size:.74rem;color:var(--ink-soft)}
+  .data-status .status-dot{width:7px;height:7px;border-radius:50%;background:var(--c-rates);box-shadow:0 0 0 3px color-mix(in srgb,var(--c-rates) 18%,transparent);flex:0 0 auto}
+  .data-status button{margin-left:auto;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:999px;padding:5px 10px;font-size:.72rem;font-weight:700;cursor:pointer}
+  .data-status button:hover{border-color:var(--navy-strong)}
+  .data-status button.busy{opacity:.65;pointer-events:none}
+  .mba-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0 2px}
+  .mba-stat{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px}
+  .mba-stat .k{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);font-weight:600}
+  .mba-stat .v{font-family:ui-monospace,SFMono-Regular,Consolas,'Liberation Mono',monospace;font-size:1.02rem;font-weight:600;margin-top:3px}
+  @media (max-width:860px){.mba-grid{grid-template-columns:repeat(2,1fr)}}
+
+  /* ---------- Snapshot strip ---------- */
+  .snapshot{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:22px 0; }
+  .tile{ background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:15px 17px; min-width:0; box-shadow:var(--shadow); border-top:3px solid var(--tile-c, var(--navy)); }
+  .tile .label{ margin-bottom:8px; }
+  .tile .val{ font-size:1.45rem; font-weight:600; display:flex; align-items:baseline; gap:8px; }
+  .tile .delta{ font-size:.85rem; font-weight:600; }
+  .up{ color:var(--up); } .down{ color:var(--down); } .flat{ color:var(--flat); }
+  .tile .ctx{ font-size:.76rem; color:var(--ink-soft); margin-top:4px; }
+
+  /* ---------- Alert banner ---------- */
+  .alert{ display:flex; gap:12px; align-items:flex-start; background: var(--c-cal-soft); border:1px solid color-mix(in srgb, var(--c-cal) 45%, var(--line)); border-left:4px solid var(--c-cal); border-radius:10px; padding:14px 16px; margin-bottom:24px; }
+  .alert .glyph{ font-family:'Arial Narrow','Aptos Display','Segoe UI',system-ui,sans-serif; font-weight:700; color:var(--c-cal); font-size:1.1rem; line-height:1.3; }
+  .alert h3{ margin:0 0 4px; font-size:1rem; color: var(--ink); }
+  .alert p{ margin:0; font-size:.88rem; color:var(--ink-soft); }
+
+  /* ---------- Layout grid ---------- */
+  .grid{ display:grid; grid-template-columns: 1.5fr 1fr; gap:20px; align-items:start; }
+  @media (max-width: 860px){ .grid{ grid-template-columns:1fr; } .snapshot{ grid-template-columns:repeat(2,1fr);} }
+
+  .card{ background:var(--surface); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:18px 20px 20px; margin-bottom:20px; scroll-margin-top:90px; }
+  .card > h2{ font-size:1.05rem; margin:0 0 4px; display:flex; align-items:center; gap:8px; }
+  .card > h2 .dot{ width:9px; height:9px; border-radius:50%; background:var(--card-c, var(--navy)); flex-shrink:0; }
+  .card .sub{ font-size:.8rem; color:var(--ink-soft); margin:0 0 14px; }
+  .card .headlink{ margin-left:auto; font-size:.76rem; font-weight:600; }
+
+  table{ width:100%; border-collapse:collapse; font-size:.88rem; }
+  th{ text-align:right; font-size:.7rem; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); font-weight:600; padding:6px 0; border-bottom:1px solid var(--line); }
+  th:first-child, td:first-child{ text-align:left; }
+  td{ padding:9px 0; border-bottom:1px solid var(--line); text-align:right; }
+  tr:last-child td{ border-bottom:none; }
+  .instr{ font-weight:600; }
+  .instr .tag{ display:block; font-weight:400; font-size:.74rem; color:var(--ink-soft); }
+
+  /* Interactive market chart */
+  .spark-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-top:16px; }
+  .chart-title{ font-family:'Arial Narrow','Aptos Display','Segoe UI',system-ui,sans-serif; font-size:1rem; font-weight:700; color:var(--ink); margin-bottom:2px; }
+  .chart-sub{ font-size:.74rem; color:var(--ink-soft); }
+  .chart-controls{ display:flex; align-items:center; gap:4px; flex-wrap:wrap; justify-content:flex-end; }
+  .chart-controls button{ border:1px solid var(--line); background:var(--surface-2); color:var(--ink-soft); font-size:.72rem; font-weight:700; padding:5px 8px; border-radius:6px; cursor:pointer; min-width:42px; }
+  .chart-controls button.active{ background:var(--surface); color:var(--ink); border-color:var(--navy-strong); box-shadow:0 1px 2px rgba(16,26,51,.12); }
+  .chart-controls button.live.active{ color:var(--down); border-color:color-mix(in srgb,var(--down) 55%,var(--line)); }
+  .chart-wrap{ position:relative; margin:9px 0 6px; border:1px solid var(--line); border-radius:12px; background:var(--surface-2); overflow:hidden; }
+  .chart-wrap svg{ display:block; width:100%; height:260px; }
+  .chart-grid{ stroke:var(--line); stroke-width:1; vector-effect:non-scaling-stroke; }
+  .chart-axis{ fill:var(--ink-soft); font:10px ui-monospace,SFMono-Regular,Consolas,'Liberation Mono',monospace; }
+  .chart-line{ fill:none; stroke:var(--c-rates); stroke-width:2.4; vector-effect:non-scaling-stroke; stroke-linejoin:round; stroke-linecap:round; }
+  .chart-area{ fill:var(--c-rates); opacity:.08; }
+  .chart-point{ fill:var(--surface); stroke:var(--c-rates); stroke-width:2; vector-effect:non-scaling-stroke; }
+  .chart-hover{ fill:var(--surface); stroke:var(--navy-strong); stroke-width:1.5; vector-effect:non-scaling-stroke; }
+  .chart-hit{ fill:transparent; cursor:crosshair; }
+  .chart-tip{ position:absolute; pointer-events:none; z-index:3; min-width:128px; background:var(--ink); color:var(--surface); border-radius:8px; padding:7px 9px; font-size:.72rem; box-shadow:var(--shadow); transform:translate(8px,-8px); display:none; }
+  .chart-tip strong{ font-family:ui-monospace,SFMono-Regular,Consolas,'Liberation Mono',monospace; font-size:.82rem; }
+  .chart-meta{ display:flex; justify-content:space-between; gap:12px; font-size:.72rem; color:var(--ink-soft); margin:6px 0 16px; }
+  .chart-meta .latest{ color:var(--ink); font-weight:700; font-family:ui-monospace,SFMono-Regular,Consolas,'Liberation Mono',monospace; }
+  @media(max-width:680px){ .spark-head{flex-direction:column;} .chart-controls{justify-content:flex-start;} .chart-wrap svg{height:230px;} }
+
+  .cal-item, .news-item{ padding:11px 0; border-bottom:1px solid var(--line); display:flex; gap:12px; }
+  .cal-item:last-child, .news-item:last-child{ border-bottom:none; }
+  .cal-time{ font-family:ui-monospace,SFMono-Regular,Consolas,'Liberation Mono',monospace; font-size:.78rem; color:var(--ink-soft); width:58px; flex-shrink:0; padding-top:1px; }
+  .cal-body h4, .news-item h4{ margin:0 0 2px; font-size:.9rem; font-weight:600; }
+  .cal-body .fig, .news-item .fig{ font-size:.78rem; color:var(--ink-soft); }
+  .imp{ display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:6px; position:relative; top:-1px; }
+  .imp.high{ background:var(--down); } .imp.med{ background:var(--c-cal); } .imp.low{ background:var(--ink-soft); }
+
+  .news-item a.headline{ color:var(--ink); font-weight:600; }
+  .news-item a.headline:hover{ color:var(--c-news); }
+  .news-item .time{ font-family:ui-monospace,SFMono-Regular,Consolas,'Liberation Mono',monospace; font-size:.72rem; color:var(--ink-soft); white-space:nowrap; }
+  .news-item p{ margin:2px 0 0; font-size:.83rem; color:var(--ink-soft); }
+  .news-item .src{ font-size:.72rem; color:var(--c-news); font-weight:600; }
+
+  .summary-card{ grid-column:1 / -1; }
+  .summary-card .body p{ font-size:.94rem; margin:0 0 12px; color:var(--ink); }
+  .summary-card .body p:last-child{ margin-bottom:0; }
+  .byline{ font-size:.78rem; color:var(--ink-soft); margin-top:16px; padding-top:12px; border-top:1px dashed var(--line); }
+  .byline a{ font-weight:600; }
+
+  /* ---------- Float vs Lock tool ---------- */
+  .tool-card{ grid-column:1 / -1; background: linear-gradient(180deg, var(--surface), var(--surface) 60%, var(--c-tool-soft)); }
+  .tool-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:24px; margin-top:8px; }
+  @media (max-width: 860px){ .tool-grid{ grid-template-columns:1fr; } }
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:.82rem; font-weight:600; margin-bottom:7px; }
+  .pillrow{ display:flex; gap:8px; flex-wrap:wrap; }
+  .pillrow button{
+    flex:1 1 auto; border:1px solid var(--line); background:var(--surface-2); color:var(--ink);
+    padding:9px 12px; border-radius:9px; font-size:.85rem; font-weight:600; cursor:pointer;
+  }
+  .pillrow button.active{ background:var(--c-tool); border-color:var(--c-tool); color:#fff; }
+  input[type=range]{ width:100%; accent-color: var(--c-tool); }
+  .range-out{ display:flex; justify-content:space-between; font-size:.76rem; color:var(--ink-soft); margin-top:4px; }
+  .range-out strong{ color:var(--ink); font-family:ui-monospace,SFMono-Regular,Consolas,'Liberation Mono',monospace; }
+  select{ width:100%; padding:9px 10px; border-radius:9px; border:1px solid var(--line); background:var(--surface-2); color:var(--ink); font-size:.85rem; font-family:inherit; }
+  .go-btn{ margin-top:6px; width:100%; background:var(--navy); color:#fff; border:none; border-radius:10px; padding:12px; font-size:.92rem; font-weight:700; cursor:pointer; letter-spacing:.01em; }
+  .go-btn:hover{ background:var(--navy-strong); }
+
+  .verdict{ border:1px solid var(--line); border-radius:14px; padding:20px; background:var(--surface); min-height:100%; display:flex; flex-direction:column; }
+  .verdict .placeholder{ color:var(--ink-soft); font-size:.9rem; margin:auto; text-align:center; }
+  .verdict-badge{ display:inline-flex; align-items:center; gap:8px; font-family:'Arial Narrow','Aptos Display','Segoe UI',system-ui,sans-serif; font-weight:700; font-size:1.8rem; padding:4px 0 10px; }
+  .verdict-badge.lock{ color:var(--down); }
+  .verdict-badge.float{ color:var(--up); }
+  .verdict-badge.lean{ color:var(--c-cal); }
+  .meter{ height:8px; border-radius:99px; background:var(--surface-2); overflow:hidden; margin:6px 0 14px; }
+  .meter-fill{ height:100%; border-radius:99px; transition:width .4s ease; }
+  .verdict p{ font-size:.88rem; color:var(--ink-soft); margin:0 0 8px; }
+  .verdict .rationale{ color:var(--ink); }
+  .verdict .caveat{ font-size:.74rem; margin-top:auto; padding-top:12px; border-top:1px dashed var(--line); }
+
+  footer.legal{ max-width:1180px; margin:0 auto; padding:0 20px 40px; font-size:.72rem; color:var(--ink-soft); line-height:1.6; }
+  footer.legal strong{ color:var(--ink); }
+
+
+  /* Chart quote / market desk readout */
+  .chart-quote{display:flex;align-items:baseline;gap:9px;margin:4px 0 0;flex-wrap:wrap}
+  .chart-quote-value{font-size:1.22rem;font-weight:700;color:var(--ink)}
+  .chart-quote-change{font-family:ui-monospace,SFMono-Regular,Consolas,'Liberation Mono',monospace;font-size:.82rem;font-weight:700}
+  .chart-quote-prev{font-size:.7rem;color:var(--ink-soft)}
+
+  /* Full-width compact news deck: avoids a tall right column and dead space under Rates. */
+  .news-wide{grid-column:1 / -1;margin-bottom:20px;border-top:3px solid var(--c-news)}
+  .news-wide > h2{margin-bottom:12px}
+  .news-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;grid-auto-flow:dense}
+  .news-grid .news-item{display:block;border:1px solid var(--line);border-radius:12px;padding:13px 14px;background:var(--surface-2);min-width:0;box-shadow:0 1px 2px rgba(16,26,51,.04)}
+  .news-grid .news-item:first-child{grid-column:span 2;background:linear-gradient(135deg,var(--surface-2),var(--c-news-soft))}
+  .news-grid .news-item:last-child{border-bottom:1px solid var(--line)}
+  .news-grid .news-item .time{display:inline-block;margin-bottom:5px;padding:2px 7px;border-radius:999px;background:var(--c-news-soft);color:var(--c-news);font-size:.66rem;font-weight:700}
+  .news-grid .news-item .headline{display:block;line-height:1.28;font-size:.88rem}
+  .news-grid .news-item p{margin:5px 0 0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;line-height:1.42;font-size:.78rem}
+  .news-grid .news-item.expanded p{display:block;overflow:visible;-webkit-line-clamp:unset}
+  .news-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px}
+  .news-actions .src{font-size:.71rem}
+  .news-more{border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);border-radius:999px;padding:4px 9px;font-size:.68rem;font-weight:700;cursor:pointer}
+  .news-more:hover{color:var(--ink);border-color:var(--c-news)}
+  @media(max-width:900px){.news-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.news-grid .news-item:first-child{grid-column:span 2}}
+  @media(max-width:640px){.news-grid{grid-template-columns:1fr}.news-grid .news-item:first-child{grid-column:auto}.news-grid .news-item p{-webkit-line-clamp:3}}
+
+
+  #rates, #calendar, #news, #summary, #floatlock, #mbaActivity{
+    scroll-margin-top:var(--sticky-offset,92px);
+  }
+  .nav-dock .quicknav{padding-bottom:8px;}
+  .nav-dock .data-status{padding-bottom:9px;}
+  @media(max-width:680px){
+    .snapshot{grid-template-columns:1fr;}
+    .top-inner{padding:13px 14px;}
+    .top-meta{text-align:left;width:100%;}
+    .quicknav{padding:8px 14px 6px;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;}
+    .quicknav::-webkit-scrollbar{display:none;}
+    .quicknav a{white-space:nowrap;}
+    .data-status{padding:0 14px 8px;}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+<div class="top-inner">
+<div class="brand">
+<div class="brand-mark">TDB</div>
+<div class="brand-text">
+<div class="name">The Daily Basis</div>
+<div class="sub">Mortgage Market Desk- provided by Michael Ross, NMLS 42104 with Mutual of Omaha Mortgage.</div>
+</div>
+</div>
+<div class="top-meta">
+<div class="date"><span class="live-dot"></span><span id="todayDate">Wednesday, September 9, 2026</span> · <span id="updateMode">Live Market Update</span></div>
+<div>Treasury, FRED history, Freddie Mac PMMS, and MBA data refresh through a Netlify server-side function. News, calendar, MBS/MND commentary and editorial summary remain separately dated/curated.</div>
+</div>
+</div>
+</header>
+<div class="nav-dock">
+<nav class="quicknav">
+<a href="#rates">Rates &amp; MBS</a>
+<a href="#calendar">Calendar</a>
+<a href="#news">News</a>
+<a href="#summary">Market Summary</a>
+<a href="#floatlock">Float vs. Lock</a>
+</nav>
+<div aria-live="polite" class="data-status" id="dataStatus"><span class="status-dot"></span><span id="dataStatusText">Server data connection ready · loading latest verified sources…</span><button id="refreshDataBtn" type="button">Refresh data</button></div>
+</div>
+
+<div class="wrap">
+<div class="snapshot">
+<div class="tile" style="--tile-c:var(--c-rates)">
+<div class="label">10–Yr Treasury</div>
+<div class="val num"><span id="tile10y">4.83</span><span class="delta down" id="tile10yDelta">--</span></div>
+<div class="ctx">This afternoon's session, up from 4.81% this morning · Brent's push past $101/barrel keeps the oil‑driven inflation scare front and center ahead of Thu's PPI / Fri's CPI</div>
+</div>
+<div class="tile" style="--tile-c:var(--c-rates)">
+<div class="label">30–Yr Fixed <span style="font-weight:400;">(MND index)</span></div>
+<div class="val num">6.89<span class="delta flat">unch.</span></div>
+<div class="ctx">Tuesday 9/8's 4pm ET print still carries forward · today's index is due shortly · third‑party trackers remain mixed‑to‑higher as the afternoon session extends this morning's move</div>
+</div>
+<div class="tile" style="--tile-c:var(--c-mbs)">
+<div class="label">UMBS 5.5 (30yr)</div>
+<div class="val num">98‑22<span class="delta down">−0‑06</span></div>
+<div class="ctx">Tuesday 9/8's confirmed settle still carries forward · today's settle posts shortly · continued oil/yield pressure this afternoon points to further downside into the print</div>
+</div>
+<div class="tile" style="--tile-c:var(--c-rates)">
+<div class="label">2–Yr Treasury</div>
+<div class="val num"><span id="tile2y">4.43</span><span class="delta flat" id="tile2yDelta">official close</span></div>
+<div class="ctx">Little changed since this morning's session · still up from Tuesday's close as Fed hike odds firm on oil‑driven inflation angst</div>
+</div>
+</div>
+<div class="alert">
+<div class="glyph">▲</div>
+<div>
+<h3>Oil shock persists into the afternoon — reprice risk remains real</h3>
+<p>This morning's Middle East‑driven oil spike hasn't faded — it's extended. Brent crude has pushed further past $101/barrel this afternoon (a fresh session high after briefly topping $100 this morning) on continued reports of U.S. strikes on Iranian oil tankers in the Gulf of Oman and Iran‑backed Houthi attacks on Saudi energy infrastructure. The 10‑year Treasury has ticked up further to roughly 4.84%, above this morning's 4.81% and now a fresh cycle high, while the 2‑year is holding near 4.43%. MND's official rate index and the UMBS settle still haven't posted new numbers as of this refresh — both are due later today — but with yields still climbing into the afternoon, a modest-to-firm increase looks likely once today's official print lands. A separate poll of economists cited in today's coverage shows roughly 30% now expect a Fed rate hike at the Sept 15–16 meeting, up from just 10% in August, consistent with the broader move toward higher hike odds. With August PPI (Thu 9/10) and CPI (Fri 9/11) still to come, today remains a reasonable day to proactively check in with borrowers who have a lock decision on the table for anything closing in the next one to two weeks — not a reason to panic on longer‑dated closings, but worth watching closely into the close.</p>
+</div>
+</div>
+<div class="grid">
+<!-- LEFT: Rates & MBS -->
+<div id="rates">
+<div class="card">
+<h2><span class="dot" style="--card-c:var(--c-rates)"></span>Rates &amp; MBS Pricing</h2>
+<p class="sub">Key benchmarks mortgage pricing tracks most closely</p>
+<table>
+<thead><tr><th>Instrument</th><th>Level</th><th>Chg</th></tr></thead>
+<tbody>
+<tr><td class="instr">30‑Yr Fixed<span class="tag">MND daily index, Tue 9/8 4pm ET — new print due this afternoon</span></td><td class="num">6.89%</td><td class="num flat">unch.</td></tr>
+<tr><td class="instr">15‑Yr Fixed<span class="tag">MND daily index, Tue 9/8 4pm ET — new print due this afternoon</span></td><td class="num">6.49%</td><td class="num flat">unch.</td></tr>
+<tr><td class="instr">Freddie Mac PMMS<span class="tag" id="pmmsTag">latest weekly average</span></td><td class="num" id="pmms30">6.71%</td><td class="num flat" id="pmms30Delta">--</td></tr>
+<tr><td class="instr">UMBS 5.5<span class="tag">30yr coupon, confirmed settle Tue 9/8 — new settle due this afternoon</span></td><td class="num">98‑22</td><td class="num down">−0‑06</td></tr>
+<tr><td class="instr">UMBS 6.0<span class="tag">30yr coupon, confirmed settle Tue 9/8 — new settle due this afternoon</span></td><td class="num">101‑00</td><td class="num down">−0‑01</td></tr>
+<tr><td class="instr">2‑Yr Treasury<span class="tag" id="tag2y">latest official daily close</span></td><td class="num" id="rate2y">4.43%</td><td class="num down" id="rate2yDelta">--</td></tr>
+<tr><td class="instr">10‑Yr Treasury<span class="tag" id="tag10y">latest official daily close</span></td><td class="num" id="rate10y">4.83%</td><td class="num down" id="rate10yDelta">--</td></tr>
+<tr><td class="instr">30‑Yr Treasury<span class="tag" id="tag30y">latest official daily close</span></td><td class="num" id="rate30y">5.28%</td><td class="num down" id="rate30yDelta">--</td></tr>
+</tbody>
+</table>
+<div class="spark-head">
+<div>
+<div class="chart-title">10-Year Treasury</div><div class="chart-quote" id="chartQuote"><span class="chart-quote-value num" id="chartQuoteValue">4.95%</span><span class="chart-quote-change flat" id="chartQuoteChange">--</span><span class="chart-quote-prev" id="chartQuotePrev">Prev. 4.83%</span></div>
+<div class="chart-sub" id="chartRangeLabel">Weekly view · official Treasury/FRED daily observations</div>
+</div>
+<div aria-label="10-Year Treasury chart range" class="chart-controls" id="chartRangeControls" role="group">
+<button class="live" data-range="live" type="button">LIVE</button>
+<button data-range="day" type="button">1D</button>
+<button class="active" data-range="week" type="button">1W</button>
+<button data-range="month" type="button">1M</button>
+<button data-range="sixmonth" type="button">6M</button>
+</div>
+</div>
+<div class="chart-wrap" id="treasuryChart">
+<svg aria-label="10-Year Treasury interactive chart" id="treasuryChartSvg" preserveaspectratio="none" role="img" viewbox="0 0 760 260">
+<g id="chartGrid"></g>
+<path class="chart-area" id="chartArea"></path>
+<path class="chart-line" id="chartLine"></path>
+<g id="chartPoints"></g>
+<g id="chartAxes"></g>
+<line id="chartHoverLine" opacity=".45" stroke="var(--navy-strong)" stroke-dasharray="4 4" style="display:none" vector-effect="non-scaling-stroke" x1="0" x2="0" y1="18" y2="228"></line>
+<circle class="chart-hover" cx="0" cy="0" id="chartHoverDot" r="4" style="display:none"></circle>
+<rect class="chart-hit" height="230" id="chartHit" width="760" x="0" y="0"></rect>
+</svg>
+<div class="chart-tip" id="chartTip"></div>
+</div>
+<div class="chart-meta">
+<span id="chartRangeFoot">Showing the latest 1 week</span>
+<span class="latest" id="chartLatest">4.83%</span>
+</div>
+<div class="byline">Sources: <a href="https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve" rel="noopener" target="_blank">U.S. Treasury daily par yield curve</a> · <a href="https://fred.stlouisfed.org/series/DGS10" rel="noopener" target="_blank">FRED DGS10</a> · <a href="https://www.freddiemac.com/pmms" rel="noopener" target="_blank">Freddie Mac PMMS</a> · <a href="https://www.mba.org/news-and-research/newsroom/news/2026/09/23/mortgage-applications-decrease-in-latest-mba-weekly-survey" rel="noopener" target="_blank">MBA Weekly Applications Survey</a>. Treasury supplies the official daily curve; FRED supplies the historical 10-year series; Freddie Mac supplies the weekly PMMS benchmark; MBA supplies weekly application activity. The dashboard now reads these sources through a same-origin Netlify server-side aggregator, which avoids browser cross-origin restrictions and preserves a verified fallback if an upstream source is temporarily unavailable. MBS/MND values remain separately labeled because the free public feed is not dependable enough to treat as a live source.</div>
+</div>
+</div>
+<!-- RIGHT: Calendar + News -->
+<div>
+<div class="card" id="calendar">
+<h2><span class="dot" style="--card-c:var(--c-cal)"></span>Today's Calendar</h2>
+<p class="sub">Wednesday, September 9 · ET · a fairly quiet data day, with the oil/yield move now extending into the afternoon</p>
+<div class="cal-item">
+<div class="cal-time">7:00a</div>
+<div class="cal-body"><h4><span class="imp low"></span>MBA Weekly Applications Survey</h4><div class="fig">Covers the week ending 9/4 · still not reflected in available sources as of this midday refresh — release appears delayed. Last week's survey (ending 8/28) showed volume up 0.8%, purchase apps up 2%, refis down 1%, and ARM selections at a five‑week high</div></div>
+</div>
+<p class="sub" style="margin:14px 0 0;">This week</p>
+<div class="cal-item">
+<div class="cal-time">Thu 9/10</div>
+<div class="cal-body"><h4><span class="imp med"></span>August PPI (Producer Price Index)</h4><div class="fig">Scheduled 8:30a ET · wholesale‑inflation preview a day ahead of CPI — carries extra weight given today's continued oil‑driven inflation scare</div></div>
+</div>
+<div class="cal-item">
+<div class="cal-time">Fri 9/11</div>
+<div class="cal-body"><h4><span class="imp high"></span>August CPI (Consumer Price Index)</h4><div class="fig">Scheduled 8:30a ET, with University of Michigan sentiment following · last major inflation read before the Fed's September meeting — a hot print pushes hike odds higher still, a cool one could reopen the door to a hold</div></div>
+</div>
+<div class="cal-item">
+<div class="cal-time">9/15–16</div>
+<div class="cal-body"><h4><span class="imp high"></span>FOMC Meeting &amp; Rate Decision</h4><div class="fig">Rate‑hike odds are holding near 60% (roughly 56–66% depending on tracker) per CME FedWatch/Polymarket, following Fed Chair Warsh's hawkish Jackson Hole remarks, Friday's jobs beat, and today's continuing oil‑driven inflation angst — a separate poll of economists shows roughly 30% now expecting a hike, up from just 10% in August</div></div>
+</div>
+<div class="byline">Source: <a href="https://tradingeconomics.com/calendar" rel="noopener" target="_blank">Trading Economics calendar</a> · <a href="https://www.bls.gov/schedule/" rel="noopener" target="_blank">BLS release schedule</a> · <a href="https://www.mba.org/news-and-research/research-and-economics/single-family-research/weekly-applications-survey" rel="noopener" target="_blank">MBA Weekly Applications Survey</a>.</div>
+</div>
+<div class="card" id="mbaActivity">
+<h2><span class="dot" style="--card-c:var(--c-cal)"></span>Mortgage Market Activity</h2>
+<p class="sub" id="mbaSub">Latest MBA Weekly Applications Survey</p>
+<div class="mba-grid">
+<div class="mba-stat"><div class="k">Applications</div><div class="v" id="mbaComposite">--</div></div>
+<div class="mba-stat"><div class="k">Purchase</div><div class="v" id="mbaPurchase">--</div></div>
+<div class="mba-stat"><div class="k">Refi</div><div class="v" id="mbaRefi">--</div></div>
+<div class="mba-stat"><div class="k">30Y Contract</div><div class="v" id="mba30">--</div></div>
+</div>
+<div class="byline">Source: <a href="https://www.mba.org/news-and-research/newsroom/news/2026/09/23/mortgage-applications-decrease-in-latest-mba-weekly-survey" rel="noopener" target="_blank">Mortgage Bankers Association</a>. This panel is populated by the Netlify server-side market-data function and falls back to the last verified release only when MBA is temporarily unavailable. </div>
+</div>
+
+</div>
+<!-- SUMMARY -->
+<div class="card news-wide" id="news">
+<h2><span class="dot" style="--card-c:var(--c-news)"></span>Housing &amp; Mortgage News</h2>
+<div class="news-grid"><div class="news-item">
+<div class="time">Today</div>
+<div><a class="headline" href="https://finance.yahoo.com/personal-finance/mortgages/article/mortgage--refinance-rates-today-wednesday-september-9-2026-fixed-rates-inch-upward-51-arm-breaks-past-7-as-oil-prices-rise-100000700.html" rel="noopener" target="_blank">Mortgage And Refinance Rates Today: Fixed Rates Inch Upward, 5/1 ARM Breaks Past 7% As Oil Prices Rise</a>
+<p>Marketplace averages (Zillow methodology) show the 30‑year up about 6bp to 6.73% and the 15‑year up 1bp to 6.05%, with the 5/1 ARM jumping 39bp to 7.03% as traders price in a firmer chance of a Fed hike next week. Methodology differences mean this runs below MND's own index, which still shows Tuesday's 6.89% pending today's print. </p><div class="news-actions"><a class="src" href="https://finance.yahoo.com/personal-finance/mortgages/article/mortgage--refinance-rates-today-wednesday-september-9-2026-fixed-rates-inch-upward-51-arm-breaks-past-7-as-oil-prices-rise-100000700.html" rel="noopener" target="_blank">Read full article →</a><button aria-expanded="false" class="news-more" type="button">Details</button></div></div>
+</div><div class="news-item">
+<div class="time">Today</div>
+<div><a class="headline" href="https://gvwire.com/2026/09/09/middle-east-tensions-drive-oil-over-100-wall-street-drops/" rel="noopener" target="_blank">Middle East Tensions Drive Oil Over $100, Wall Street Drops</a>
+<p>Brent crude touched a session high near $101 as fighting in the Gulf region intensified, with U.S. stock indexes opening lower (Dow down roughly 0.75%–1.2%, S&amp;P 500 and Nasdaq both softer) as investors weighed the inflation impact. The piece notes financial markets remain genuinely divided over next week's FOMC decision, with the share of economists expecting a hike rising to roughly 30% from just 10% in August. </p><div class="news-actions"><a class="src" href="https://gvwire.com/2026/09/09/middle-east-tensions-drive-oil-over-100-wall-street-drops/" rel="noopener" target="_blank">Read full article →</a><button aria-expanded="false" class="news-more" type="button">Details</button></div></div>
+</div><div class="news-item">
+<div class="time">Today</div>
+<div><a class="headline" href="https://themortgagereports.com/mortgage-rates-now/mortgage-rates-today-september-9-2026" rel="noopener" target="_blank">Mortgage Rates Hold Steady Amid Mixed Signals</a>
+<p>Describes today's tone as "mixed with upward pressure": the 10‑year Treasury yield rose to roughly 4.81%–4.84% and oil climbed further, both pointing toward slightly worse mortgage pricing, even as some individual rate trackers showed flat-to-lower quotes and equity indexes slipped. The piece's own read: "the market signal still points to modest upward pressure on mortgage rates today" despite the inconsistent consumer-facing reporting. </p><div class="news-actions"><a class="src" href="https://themortgagereports.com/mortgage-rates-now/mortgage-rates-today-september-9-2026" rel="noopener" target="_blank">Read full article →</a><button aria-expanded="false" class="news-more" type="button">Details</button></div></div>
+</div><div class="news-item">
+<div class="time">Wed 9/2</div>
+<div><a class="headline" href="https://www.mba.org/news-and-research/newsroom/news/2026/09/02/mortgage-applications-increase-in-latest-mba-weekly-survey" rel="noopener" target="_blank">Mortgage Applications Increase In Latest MBA Weekly Survey</a>
+<p>MBA's survey for the week ending 8/28 showed total volume up 0.8%, purchase apps up 2%, and refis down 1%, with ARM selections at a five‑week high as borrowers adapt to rates near 7%. The following week's release (covering 9/4) was due Wednesday morning but still hadn't surfaced in available sources as of this midday refresh. </p><div class="news-actions"><a class="src" href="https://www.mba.org/news-and-research/newsroom/news/2026/09/02/mortgage-applications-increase-in-latest-mba-weekly-survey" rel="noopener" target="_blank">Read full article →</a><button aria-expanded="false" class="news-more" type="button">Details</button></div></div>
+</div><div class="news-item">
+<div class="time">Fri 9/4</div>
+<div><a class="headline" href="https://www.carringtonwholesale.com/2026/09/04/weekly-housing-headlines-95/" rel="noopener" target="_blank">Weekly Housing Headlines</a>
+<p>Active inventory is up 4.7% y/y and new listings up 6.9%, but the median listing price is down 1.2% y/y and over half of prospective buyers say they're holding off until rates approach 5% — a split market where affordability, not availability, is the binding constraint. </p><div class="news-actions"><a class="src" href="https://www.carringtonwholesale.com/2026/09/04/weekly-housing-headlines-95/" rel="noopener" target="_blank">Read full article →</a><button aria-expanded="false" class="news-more" type="button">Details</button></div></div>
+</div></div>
+
+
+
+
+<div class="byline">Source: <a href="https://www.mortgagenewsdaily.com/news" rel="noopener" target="_blank">Mortgage News Daily</a> and other outlets linked above.</div>
+</div><div class="card summary-card" id="summary">
+<h2><span class="dot" style="--card-c:var(--navy)"></span>Market Summary</h2>
+<p class="sub">What's changed since this morning — and what it means for today's pipeline</p>
+<div class="body">
+<p>This morning's Middle East‑driven oil shock hasn't cooled off into the afternoon — it's extended. Brent crude, which briefly topped $100/barrel around this morning's open, has pushed further to a fresh session high near $101 as fighting around the Gulf of Oman and Saudi energy infrastructure continues, with oil now up roughly 60% year‑to‑date. Bond markets have kept leaning into the move: the 10‑year Treasury, which was already back to about 4.81% this morning (matching last week's post‑jobs‑report cycle high), has ticked up further to roughly 4.84% this afternoon — a fresh high for the cycle — while the 2‑year is holding steady near 4.43%. U.S. equity indexes opened lower on the day (Dow down roughly 0.75%–1.2%, S&amp;P 500 and Nasdaq both softer), which would normally support bond prices, but Treasury yields rose anyway, underscoring that the oil‑driven inflation story is the dominant factor in today's pricing rather than a simple risk‑off rotation.</p>
+<p>MND's own 30‑year and 15‑year rate index, along with the UMBS coupon settle prices, still hadn't posted a new print as of this refresh — both remain at Tuesday's confirmed 6.89%/6.49% and 98‑22/101‑00 levels, with today's official numbers due later this afternoon. Given how the session has continued to move against bonds since the morning, a modest‑to‑firm increase in both looks more likely than not once the print lands. Third‑party trackers stayed mixed: Zillow's marketplace average (via Yahoo) shows the 30‑year up a handful of basis points to 6.73% and the 5/1 ARM breaking back above 7%, while at least one other consumer‑facing source described today's tone as "mixed with upward pressure" even while its own quoted rate table showed a modest decline — a reminder that these aggregators can disagree with each other and even with themselves, and shouldn't be read as a preview of MND's own afternoon print. A separate survey of economists now shows roughly 30% expecting a Fed rate hike at the September 15–16 meeting, up sharply from just 10% in August, broadly consistent with CME FedWatch/Polymarket odds that have held near 60% since Fed Chair Kevin Warsh's hawkish Jackson Hole remarks.</p>
+<p>The data calendar stayed light today: MBA's weekly applications survey for the week ending 9/4, expected around 7am ET, still hadn't surfaced in available sources as of this midday check — last week's release (ending 8/28) showed a modest 0.8% rebound in volume, purchase apps up 2%, and refis down 1%, with ARM selections at a five‑week high. Freddie Mac's PMMS remains at 6.71%, unchanged for a third straight week; the next update lands tomorrow. The bigger story stays what's ahead: August PPI lands Thursday and August CPI on Friday, the last major inflation reads before the Fed's meeting, and today's continued oil move raises the stakes on both. For today's pipeline, the case for flagging reprice risk is, if anything, a little stronger than it was this morning — MBS pricing is already carrying forward a lower Tuesday settle, yields have kept climbing into the afternoon, and the official print hasn't even posted yet. For any borrower closing in the next one to two weeks, or anyone on the fence about locking ahead of Thursday's PPI or Friday's CPI, this remains a reasonable afternoon to check in and walk through the numbers before the close. For closings well outside that window, today's move doesn't change the underlying calculus much, but it's worth watching closely given how much data lands over the next 48 hours.</p>
+</div>
+</div>
+<!-- FLOAT VS LOCK -->
+<div class="card tool-card" id="floatlock">
+<h2><span class="dot" style="--card-c:var(--c-tool)"></span>Float vs. Lock Advisor</h2>
+<p class="sub">A quick, rules‑based read on today's market tone — not a substitute for your own judgment or company policy</p>
+<div class="tool-grid">
+<div>
+<div class="field">
+<label>Loan purpose</label>
+<div class="pillrow" id="purposeRow">
+<button class="active" data-val="purchase" type="button">Purchase</button>
+<button data-val="refi" type="button">Refinance</button>
+</div>
+</div>
+<div class="field">
+<label>Days until closing / rate lock needed</label>
+<input id="daysRange" max="60" min="0" type="range" value="21"/>
+<div class="range-out"><span>0 (today)</span><strong id="daysOut">21 days</strong><span>60+</span></div>
+</div>
+<div class="field">
+<label>Borrower's risk tolerance</label>
+<select id="riskSelect">
+<option value="conservative">Conservative — wants certainty</option>
+<option selected="" value="balanced">Balanced</option>
+<option value="aggressive">Aggressive — comfortable floating</option>
+</select>
+</div>
+<button class="go-btn" id="goBtn" type="button">Get today's read</button>
+</div>
+<div class="verdict" id="verdict">
+<p class="placeholder">Set the details on the left, then click "Get today's read" for a Float vs. Lock gauge based on today's snapshot.</p>
+</div>
+</div>
+<div class="byline">Momentum input, updated this afternoon: this morning's Middle East‑driven oil shock has extended further — Brent has pushed past $101/barrel and the 10‑year has ticked up to roughly 4.84% (a fresh cycle high) from 4.81% this morning, while the 2‑year holds near 4.43%. MND's own afternoon print and today's UMBS settle still hadn't posted as of this refresh, but the continued move points to further pressure once they do. Today's tone remains genuinely lock‑favoring, modestly more so than the morning read — though still short of the extremes seen on marquee single‑release days — with Thursday's PPI and Friday's CPI, the last major inflation reads before the Sept 15–16 FOMC meeting (hike odds near 60% per FedWatch/Polymarket, though a separate economist survey now shows roughly 30% expecting a hike, up from 10% in August), still the bigger catalysts this week.</div>
+</div>
+</div>
+</div>
+<footer class="legal">
+<strong>FOR MORTGAGE LENDER USE.</strong> Rates, prices, and yields shown are market indices and third‑party data snapshots for general informational purposes only — they are illustrative, not a quote, and are subject to change without notice. They do not represent terms available to any specific borrower; actual rates, pricing, and eligibility depend on credit profile, loan program, property, and underwriting factors, and require review by a licensed loan officer. The Float vs. Lock Advisor is a directional, rules‑based gauge of same‑day market tone only — it is not individualized financial or legal advice, does not guarantee future pricing, and does not replace your own judgment or applicable lender lock policies. Before sharing any version of this page with clients or prospects, route the content through Compliance and Legal for review of rate‑related claims, required disclosures, and Fair Housing/ECOA/UDAAP considerations. Prepared by Michael Ross — NMLS #42104. Equal Housing Opportunity.
+</footer>
+<script>
+(function(){
+  'use strict';
+
+  const FALLBACK = {
+    treasury:{date:'2026-09-23',y2:4.49,y5:4.97,y10:5.11,y30:5.40},
+    pmms:{date:'September 17, 2026',y30:6.95,y15:6.26},
+    mba:{date:'September 23, 2026',composite:-1.5,purchase:-1.0,refi:-3.0,rate30:7.12},
+    // Verified FRED DGS10 observations sampled across the last six months.
+    // The hosted version attempts to replace these with a fresh FRED CSV series.
+    fred:[
+      {date:'2026-03-10',value:4.15},{date:'2026-03-11',value:4.21},{date:'2026-03-12',value:4.27},{date:'2026-03-13',value:4.28},{date:'2026-03-16',value:4.23},{date:'2026-03-17',value:4.20},{date:'2026-03-18',value:4.26},
+      {date:'2026-04-07',value:4.33},{date:'2026-04-08',value:4.29},{date:'2026-04-09',value:4.29},{date:'2026-04-10',value:4.31},{date:'2026-04-13',value:4.30},
+      {date:'2026-05-08',value:4.38},{date:'2026-05-11',value:4.42},{date:'2026-05-12',value:4.46},{date:'2026-05-13',value:4.46},{date:'2026-05-14',value:4.47},{date:'2026-05-15',value:4.59},{date:'2026-05-18',value:4.61},{date:'2026-05-19',value:4.67},{date:'2026-05-20',value:4.57},{date:'2026-05-21',value:4.57},
+      {date:'2026-06-09',value:4.53},{date:'2026-06-10',value:4.55},{date:'2026-06-11',value:4.45},{date:'2026-06-12',value:4.48},{date:'2026-06-15',value:4.47},{date:'2026-06-16',value:4.43},{date:'2026-06-22',value:4.51},{date:'2026-06-23',value:4.50},{date:'2026-06-24',value:4.41},{date:'2026-06-25',value:4.40},{date:'2026-06-26',value:4.38},{date:'2026-06-29',value:4.38},{date:'2026-06-30',value:4.44},
+      {date:'2026-07-01',value:4.48},{date:'2026-07-02',value:4.49},{date:'2026-07-06',value:4.48},{date:'2026-07-07',value:4.55},{date:'2026-07-10',value:4.56},{date:'2026-07-13',value:4.62},{date:'2026-07-14',value:4.58},{date:'2026-07-15',value:4.55},{date:'2026-07-16',value:4.57},{date:'2026-07-17',value:4.55},{date:'2026-07-20',value:4.60},{date:'2026-07-21',value:4.63},{date:'2026-07-22',value:4.67},{date:'2026-07-24',value:4.69},{date:'2026-07-27',value:4.65},{date:'2026-07-28',value:4.61},{date:'2026-07-29',value:4.67},{date:'2026-07-30',value:4.68},{date:'2026-07-31',value:4.75},
+      {date:'2026-08-03',value:4.70},{date:'2026-08-04',value:4.63},{date:'2026-08-05',value:4.63},{date:'2026-08-06',value:4.69},{date:'2026-08-17',value:4.72},{date:'2026-08-18',value:4.71},{date:'2026-08-19',value:4.65},{date:'2026-08-20',value:4.69},{date:'2026-08-21',value:4.74},{date:'2026-08-24',value:4.70},{date:'2026-08-25',value:4.64},{date:'2026-08-26',value:4.66},{date:'2026-08-27',value:4.67},
+      {date:'2026-09-15',value:5.00},{date:'2026-09-16',value:5.01},{date:'2026-09-17',value:4.94},{date:'2026-09-18',value:5.01},{date:'2026-09-21',value:4.96},{date:'2026-09-22',value:4.96},{date:'2026-09-23',value:5.11}
+    ]
+  };
+
+  const $ = id => document.getElementById(id);
+  const setText = (id,val) => { const el=$(id); if(el) el.textContent=val; };
+  const pct = n => Number.isFinite(Number(n)) ? Number(n).toFixed(2)+'%' : '--';
+  const signed = n => { const v=Number(n); return Number.isFinite(v) ? (v>0?'+':'')+v.toFixed(2) : '--'; };
+  const sourceState=[];
+
+  const inRestrictedPreview = (()=>{
+    try{
+      const text=[document.referrer||'', location.hostname||'', location.href||'', ...(Array.from(location.ancestorOrigins||[]))].join(' ').toLowerCase();
+      return window.top!==window.self || /chatgpt|openai|claude|canvas|usercontent/.test(text);
+    }catch(_){ return true; }
+  })();
+
+  function setDelta(id,delta,unit=''){
+    const el=$(id); if(!el) return;
+    const n=Number(delta);
+    el.textContent=Number.isFinite(n) ? signed(n)+unit : '--';
+    el.classList.remove('up','down','flat');
+    el.classList.add(!Number.isFinite(n)||Math.abs(n)<0.005 ? 'flat' : (n>0?'down':'up'));
+  }
+
+  // ---------- Interactive 10-Year Treasury chart ----------
+  let chartHistory=FALLBACK.fred.slice();
+  let chartRange='week';
+  let chartSource='embedded verified FRED observations';
+
+  function parseDate(s){ return new Date(s+'T12:00:00Z'); }
+  function dateMs(s){ return parseDate(s).getTime(); }
+  function fmtDate(s,range){
+    const d=parseDate(s);
+    if(range==='sixmonth') return d.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+    return d.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+  }
+
+  function cleanChartRows(rows){
+    const seen=new Map();
+    (rows||[]).forEach(r=>{
+      const value=Number(r && r.value);
+      if(r && /^\d{4}-\d{2}-\d{2}$/.test(r.date||'') && Number.isFinite(value)) seen.set(r.date,{date:r.date,value});
+    });
+    return [...seen.values()].sort((a,b)=>a.date.localeCompare(b.date));
+  }
+
+  function filterChartRows(rows,range){
+    const clean=cleanChartRows(rows);
+    if(clean.length<=2) return clean;
+    const latest=clean[clean.length-1];
+    if(range==='live') return clean.slice(-8);
+    if(range==='day') return clean.slice(-2); // daily public series: latest close versus prior close
+    const days={week:7,month:31,sixmonth:183}[range]||7;
+    const cutoff=dateMs(latest.date)-days*86400000;
+    const filtered=clean.filter(r=>dateMs(r.date)>=cutoff);
+    return filtered.length>=2 ? filtered : clean.slice(-2);
+  }
+
+  function svgEl(name,attrs={}){
+    const el=document.createElementNS('http://www.w3.org/2000/svg',name);
+    Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,String(v)));
+    return el;
+  }
+
+  function renderTreasuryChart(rows){
+    const svg=$('treasuryChartSvg');
+    if(!svg) return;
+    const data=filterChartRows(rows,chartRange);
+    if(data.length<2){ setText('chartRangeFoot','Not enough observations to draw this range'); return; }
+
+    const W=760,H=260,left=52,right=18,top=18,bottom=34;
+    const x0=left,x1=W-right,y0=top,y1=H-bottom;
+    const vals=data.map(d=>d.value);
+    const min=Math.min(...vals),max=Math.max(...vals);
+    const pad=Math.max((max-min)*0.16,0.025);
+    const lo=min-pad,hi=max+pad,span=Math.max(hi-lo,0.05);
+    const t0=dateMs(data[0].date),t1=dateMs(data[data.length-1].date);
+    const timeSpan=Math.max(t1-t0,86400000);
+    const x=d=>x0+((dateMs(d.date)-t0)/timeSpan)*(x1-x0);
+    const y=v=>y1-((v-lo)/span)*(y1-y0);
+
+    const points=data.map(d=>x(d).toFixed(2)+','+y(d.value).toFixed(2));
+    const linePath='M '+points.join(' L ');
+    const areaPath=linePath+' L '+x(data[data.length-1]).toFixed(2)+','+y1+' L '+x(data[0]).toFixed(2)+','+y1+' Z';
+    $('chartLine').setAttribute('d',linePath);
+    $('chartArea').setAttribute('d',areaPath);
+
+    const grid=$('chartGrid'),axes=$('chartAxes'),pts=$('chartPoints');
+    grid.replaceChildren(); axes.replaceChildren(); pts.replaceChildren();
+
+    const yTicks=5;
+    for(let i=0;i<yTicks;i++){
+      const yy=y0+i*(y1-y0)/(yTicks-1);
+      const value=hi-i*(hi-lo)/(yTicks-1);
+      grid.appendChild(svgEl('line',{x1:x0,x2:x1,y1:yy,y2:yy,class:'chart-grid'}));
+      const label=svgEl('text',{x:x0-8,y:yy+4,'text-anchor':'end',class:'chart-axis'});
+      label.textContent=value.toFixed(2)+'%'; axes.appendChild(label);
+    }
+
+    // Latest and previous-close guide lines (market-desk style).
+    const latest=data[data.length-1],prev=data[data.length-2];
+    const latestLine=svgEl('line',{x1:x0,x2:x1,y1:y(latest.value),y2:y(latest.value),stroke:'var(--c-rates)','stroke-width':'1.1','vector-effect':'non-scaling-stroke',opacity:'.65'});
+    const prevLine=svgEl('line',{x1:x0,x2:x1,y1:y(prev.value),y2:y(prev.value),stroke:'var(--c-cal)','stroke-width':'1','stroke-dasharray':'5 4','vector-effect':'non-scaling-stroke',opacity:'.65'});
+    grid.appendChild(prevLine); grid.appendChild(latestLine);
+
+    const labelCount=chartRange==='sixmonth'?5:chartRange==='month'?4:3;
+    const idx=[];
+    for(let i=0;i<labelCount;i++) idx.push(Math.round(i*(data.length-1)/(labelCount-1)));
+    [...new Set(idx)].forEach((i,pos,arr)=>{
+      const label=svgEl('text',{x:x(data[i]),y:H-10,'text-anchor':pos===0?'start':pos===arr.length-1?'end':'middle',class:'chart-axis'});
+      label.textContent=fmtDate(data[i].date,chartRange); axes.appendChild(label);
+    });
+
+    const maxDots=chartRange==='sixmonth'?24:40;
+    const step=Math.max(1,Math.ceil(data.length/maxDots));
+    data.forEach((d,i)=>{
+      if(i%step!==0 && i!==data.length-1) return;
+      pts.appendChild(svgEl('circle',{cx:x(d),cy:y(d.value),r:chartRange==='live'?3:2.2,class:'chart-point'}));
+    });
+
+    const delta=latest.value-prev.value;
+    setText('chartLatest',pct(latest.value));
+    setText('chartQuoteValue',pct(latest.value));
+    setText('chartQuotePrev','Prev. '+pct(prev.value));
+    const q=$('chartQuoteChange');
+    if(q){
+      q.textContent=(delta>0?'+':'')+delta.toFixed(3);
+      q.classList.remove('up','down','flat');
+      q.classList.add(Math.abs(delta)<0.0005?'flat':delta>0?'down':'up');
+    }
+
+    const labels={
+      live:'Latest verified observations · public daily series (not tick-by-tick)',
+      day:'1-day move · latest official close vs prior close',
+      week:'Weekly view · official daily 10-Year Treasury observations',
+      month:'Monthly view · official daily 10-Year Treasury observations',
+      sixmonth:'6-month view · official/verified 10-Year Treasury history'
+    };
+    setText('chartRangeLabel',labels[chartRange]);
+    const feet={live:'Latest 8 verified observations',day:'Latest close vs previous close',week:'Latest 1 week',month:'Latest 1 month',sixmonth:'Latest 6 months'};
+    setText('chartRangeFoot',feet[chartRange]+' · '+chartSource);
+
+    const hit=$('chartHit'),tip=$('chartTip'),hoverLine=$('chartHoverLine'),hoverDot=$('chartHoverDot');
+    hit.onmousemove=evt=>{
+      const rect=svg.getBoundingClientRect();
+      const mouseX=((evt.clientX-rect.left)/rect.width)*W;
+      let best=0,bestDist=Infinity;
+      data.forEach((d,i)=>{ const dist=Math.abs(x(d)-mouseX); if(dist<bestDist){best=i;bestDist=dist;} });
+      const d=data[best],cx=x(d),cy=y(d.value);
+      hoverLine.setAttribute('x1',cx);hoverLine.setAttribute('x2',cx);hoverLine.style.display='block';
+      hoverDot.setAttribute('cx',cx);hoverDot.setAttribute('cy',cy);hoverDot.style.display='block';
+      tip.innerHTML='<div>'+fmtDate(d.date,'day')+'</div><strong>'+d.value.toFixed(3)+'%</strong>';
+      tip.style.display='block';
+      tip.style.left=Math.min(Math.max((cx/W)*100,3),78)+'%';
+      tip.style.top=Math.max((cy/H)*100-8,6)+'%';
+    };
+    hit.onmouseleave=()=>{hoverLine.style.display='none';hoverDot.style.display='none';tip.style.display='none';};
+  }
+
+  function wireStickyOffset(){
+    const dock=document.querySelector('.nav-dock');
+    if(!dock) return;
+    const update=()=>document.documentElement.style.setProperty('--sticky-offset',(dock.getBoundingClientRect().height+14)+'px');
+    update();
+    window.addEventListener('resize',update,{passive:true});
+    if('ResizeObserver' in window){ new ResizeObserver(update).observe(dock); }
+  }
+
+  function wireChartControls(){
+    const buttons=[...document.querySelectorAll('#chartRangeControls button')];
+    buttons.forEach(btn=>btn.addEventListener('click',()=>{
+      buttons.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      chartRange=btn.dataset.range || 'week';
+      renderTreasuryChart(chartHistory);
+    }));
+  }
+
+  // ---------- Compact news expansion ----------
+  function wireNews(){
+    document.querySelectorAll('.news-more').forEach(btn=>btn.addEventListener('click',()=>{
+      const item=btn.closest('.news-item');
+      if(!item) return;
+      const open=item.classList.toggle('expanded');
+      btn.textContent=open?'Less':'Details';
+      btn.setAttribute('aria-expanded',open?'true':'false');
+    }));
+  }
+
+  // ---------- Float vs Lock advisor ----------
+  let purpose='purchase';
+  const TODAY_MOMENTUM=1.1;
+  function wireAdvisor(){
+    document.querySelectorAll('#purposeRow button').forEach(btn=>btn.addEventListener('click',()=>{
+      document.querySelectorAll('#purposeRow button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active'); purpose=btn.dataset.val || 'purchase';
+    }));
+    const daysRange=$('daysRange'),daysOut=$('daysOut'),goBtn=$('goBtn');
+    if(daysRange && daysOut) daysRange.addEventListener('input',()=>{daysOut.textContent=(Number(daysRange.value)>=60?'60+':daysRange.value)+' days';});
+    if(goBtn) goBtn.addEventListener('click',()=>{
+      const days=parseInt(daysRange.value,10),risk=$('riskSelect').value;
+      let score=TODAY_MOMENTUM*2;
+      score+=days<=7?2:days<=21?0.5:-1.5;
+      score+=risk==='conservative'?2:risk==='aggressive'?-2:0;
+      score+=purpose==='refi'?-0.5:0.5;
+      let label,cls,meter,rationale;
+      if(score>=2.5){label='Lean Lock';cls='lock';meter=Math.min(95,55+score*8);rationale="Today's tape is worsening and the closing window is tight enough that the downside of floating outweighs the upside. Locking protects today's pricing.";}
+      else if(score<=-2){label='Lean Float';cls='float';meter=Math.max(5,45+score*8);rationale="There's enough runway and risk appetite here that floating a bit longer is reasonable. Keep a close eye on the next market catalyst and revisit before the lock deadline.";}
+      else{label='Toss-Up';cls='lean';meter=50+score*6;rationale="Today's inputs do not strongly favor either side. This is a good one to talk through live with the borrower and re-check pricing closer to the deadline.";}
+      meter=Math.max(4,Math.min(96,meter));
+      const color=cls==='lock'?'var(--down)':cls==='float'?'var(--up)':'var(--c-cal)';
+      $('verdict').innerHTML='<div class="verdict-badge '+cls+'">'+label+'</div><div class="meter"><div class="meter-fill" style="width:'+meter+'%;background:'+color+'"></div></div><p class="rationale">'+rationale+'</p><p>Inputs: '+(purpose==='purchase'?'Purchase':'Refinance')+' &middot; '+days+' days to close &middot; '+risk+' borrower &middot; today\'s tone is '+(TODAY_MOMENTUM>0?'lock-favoring':TODAY_MOMENTUM<0?'float-favoring':'neutral')+'.</p><div class="caveat">A directional gauge only &mdash; not individualized advice. Confirm with live pricing and your own judgment before advising a borrower.</div>';
+    });
+  }
+
+  // ---------- Netlify server-side market-data adapter ----------
+  async function loadServerData(){
+    const r=await fetch('/api/market-data',{cache:'no-store',headers:{'accept':'application/json'}});
+    if(!r.ok) throw new Error('Market data service returned '+r.status);
+    const data=await r.json();
+    if(!data || !data.treasury || !Array.isArray(data.fred)) throw new Error('Market data response was incomplete');
+    return data;
+  }
+
+  function applyServerData(data){
+    const t=data.treasury||FALLBACK.treasury;
+    const pmms=data.pmms||FALLBACK.pmms;
+    const mba=data.mba||FALLBACK.mba;
+    const tc=t.changes||{};
+    const pc=pmms.changes||{};
+
+    setText('rate2y',pct(t.y2)); setText('rate10y',pct(t.y10)); setText('rate30y',pct(t.y30));
+    setText('tile10y',Number(t.y10).toFixed(2)); setText('tile2y',Number(t.y2).toFixed(2));
+    setText('tag2y','official daily curve · '+t.date); setText('tag10y','official daily curve · '+t.date); setText('tag30y','official daily curve · '+t.date);
+    setDelta('rate2yDelta',tc.y2,'%'); setDelta('rate10yDelta',tc.y10,'%'); setDelta('rate30yDelta',tc.y30,'%');
+    setText('tile10yDelta',Number.isFinite(Number(tc.y10)) ? signed(tc.y10)+'%' : 'confirmed close');
+    setText('tile2yDelta',Number.isFinite(Number(tc.y2)) ? signed(tc.y2)+'%' : 'confirmed close');
+
+    setText('pmms30',pct(pmms.y30)); setText('pmmsTag','weekly average · '+pmms.date);
+    setText('pmms30Delta',Number.isFinite(Number(pc.y30)) ? signed(pc.y30)+'%' : '--');
+
+    setText('mbaSub','MBA Weekly Applications Survey · '+mba.date);
+    setText('mbaComposite',signed(mba.composite)+'%'); setText('mbaPurchase',signed(mba.purchase)+'%');
+    setText('mbaRefi',signed(mba.refi)+'%'); setText('mba30',pct(mba.rate30));
+
+    chartHistory=(data.fred&&data.fred.length>=2)?data.fred:FALLBACK.fred.slice();
+    chartSource=(data.sources||[]).find(x=>x.name==='FRED DGS10')?.ok ? 'FRED DGS10 via Netlify' : 'embedded verified FRED observations';
+    renderTreasuryChart(chartHistory);
+
+    const generated=data.generatedAt?new Date(data.generatedAt):new Date();
+    const ok=Number(data.sourceCount||0);
+    setText('todayDate',generated.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'}));
+    setText('updateMode',(data.status==='live'?'Live Server Update':data.status==='partial'?'Partial Server Update':'Verified Fallback')+' · '+ok+'/4 sources');
+    const sourceBits=(data.sources||[]).map(x=>x.name+': '+(x.ok?'OK':'fallback'));
+    setText('dataStatusText',generated.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})+' · Netlify server · '+ok+'/4 sources refreshed'+(sourceBits.length?' · '+sourceBits.join(' · '):''));
+  }
+
+  function applySnapshot(){
+    const t=FALLBACK.treasury,pmms=FALLBACK.pmms,mba=FALLBACK.mba;
+    setText('rate2y',pct(t.y2)); setText('rate10y',pct(t.y10)); setText('rate30y',pct(t.y30));
+    setText('tile10y',t.y10.toFixed(2)); setText('tile2y',t.y2.toFixed(2));
+    setText('tag2y','official daily curve · '+t.date); setText('tag10y','official daily curve · '+t.date); setText('tag30y','official daily curve · '+t.date);
+    setDelta('rate2yDelta',0,'%'); setDelta('rate10yDelta',0,'%'); setDelta('rate30yDelta',0,'%');
+    setText('tile10yDelta','confirmed close'); setText('tile2yDelta','confirmed close');
+    setText('pmms30',pct(pmms.y30)); setText('pmmsTag','weekly average · '+pmms.date); setText('pmms30Delta','+0.05%');
+    setText('mbaSub','MBA Weekly Applications Survey · '+mba.date); setText('mbaComposite',signed(mba.composite)+'%'); setText('mbaPurchase',signed(mba.purchase)+'%'); setText('mbaRefi',signed(mba.refi)+'%'); setText('mba30',pct(mba.rate30));
+    chartHistory=FALLBACK.fred.slice(); chartSource='embedded verified FRED observations'; renderTreasuryChart(chartHistory);
+    const now=new Date(); setText('todayDate',now.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'}));
+    setText('updateMode',inRestrictedPreview?'Verified Snapshot · embedded preview':'Verified Snapshot · server loading');
+    setText('dataStatusText',inRestrictedPreview?'Embedded preview · verified snapshot shown':'Verified snapshot loaded · contacting Netlify market-data service…');
+    const btn=$('refreshDataBtn'); if(btn && inRestrictedPreview){btn.textContent='Refresh snapshot';btn.title='Embedded preview uses the verified snapshot and makes no external requests.';}
+  }
+
+  async function refresh(){
+    const btn=$('refreshDataBtn');
+    if(inRestrictedPreview || location.protocol==='file:'){
+      applySnapshot();
+      setText('dataStatusText','Local/embedded preview · verified snapshot shown · server refresh runs on the Netlify-hosted site');
+      return;
+    }
+    if(btn){btn.classList.add('busy');btn.textContent='Refreshing…';}
+    setText('dataStatusText','Refreshing from Netlify server…');
+    try{
+      const data=await loadServerData();
+      applyServerData(data);
+    }catch(err){
+      applySnapshot();
+      setText('updateMode','Verified Fallback');
+      setText('dataStatusText','Server refresh unavailable · verified fallback shown · '+(err&&err.message?err.message:'unknown error'));
+    }finally{
+      if(btn){btn.classList.remove('busy');btn.textContent='Refresh data';}
+    }
+  }
+
+  wireStickyOffset(); wireChartControls(); wireNews(); wireAdvisor();
+  const refreshBtn=$('refreshDataBtn'); if(refreshBtn) refreshBtn.addEventListener('click',refresh);
+  window.__dailyBasisRefresh=refresh;
+  applySnapshot();
+  if(!inRestrictedPreview && location.protocol!=='file:') setTimeout(refresh,120);
+})();
+</script>
+</body>
+</html>
