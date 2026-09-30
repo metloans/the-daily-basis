@@ -164,6 +164,13 @@
   .chart-tip strong{ font-family:ui-monospace,SFMono-Regular,Consolas,'Liberation Mono',monospace; font-size:.82rem; }
   .chart-meta{ display:flex; justify-content:space-between; gap:12px; font-size:.72rem; color:var(--ink-soft); margin:6px 0 16px; }
   .chart-meta .latest{ color:var(--ink); font-weight:700; font-family:ui-monospace,SFMono-Regular,Consolas,'Liberation Mono',monospace; }
+  .intraday-strip{display:flex;gap:7px;overflow-x:auto;padding:2px 0 10px;margin-top:-4px;scrollbar-width:thin;}
+  .intraday-chip{flex:0 0 auto;border:1px solid var(--line);border-radius:9px;background:var(--surface-2);padding:6px 8px;min-width:76px;}
+  .intraday-chip .t{display:block;font-size:.62rem;color:var(--ink-soft);font-weight:700;letter-spacing:.03em;text-transform:uppercase;}
+  .intraday-chip .v{display:block;font-family:ui-monospace,SFMono-Regular,Consolas,'Liberation Mono',monospace;font-size:.76rem;font-weight:700;color:var(--ink);margin-top:2px;}
+  .intraday-chip.open{border-color:color-mix(in srgb,var(--c-cal) 55%,var(--line));}
+  .intraday-chip.current{border-color:color-mix(in srgb,var(--c-rates) 65%,var(--line));background:var(--c-rates-soft);}
+  .chart-hour-label{fill:var(--ink-soft);font:9px ui-monospace,SFMono-Regular,Consolas,'Liberation Mono',monospace;font-weight:700;}
   @media(max-width:680px){ .spark-head{flex-direction:column;} .chart-controls{justify-content:flex-start;} .chart-wrap svg{height:230px;} }
 
   .cal-item, .news-item{ padding:11px 0; border-bottom:1px solid var(--line); display:flex; gap:12px; }
@@ -344,9 +351,9 @@
 <div class="chart-sub" id="chartRangeLabel">Weekly view · official Treasury/FRED daily observations</div>
 </div>
 <div aria-label="10-Year Treasury chart range" class="chart-controls" id="chartRangeControls" role="group">
-<button class="live" data-range="live" type="button">LIVE</button>
+<button class="live active" data-range="live" type="button">LIVE</button>
 <button data-range="day" type="button">1D</button>
-<button class="active" data-range="week" type="button">1W</button>
+<button data-range="week" type="button">1W</button>
 <button data-range="month" type="button">1M</button>
 <button data-range="sixmonth" type="button">6M</button>
 </div>
@@ -365,10 +372,11 @@
 <div class="chart-tip" id="chartTip"></div>
 </div>
 <div class="chart-meta">
-<span id="chartRangeFoot">Showing the latest 1 week</span>
+<span id="chartRangeFoot">Loading intraday 10-Year Treasury session…</span>
 <span class="latest" id="chartLatest">4.83%</span>
 </div>
-<div class="byline">Sources: <a href="https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve" rel="noopener" target="_blank">U.S. Treasury daily par yield curve</a> · <a href="https://fred.stlouisfed.org/series/DGS10" rel="noopener" target="_blank">FRED DGS10</a> · <a href="https://www.freddiemac.com/pmms" rel="noopener" target="_blank">Freddie Mac PMMS</a> · <a href="https://www.mba.org/news-and-research/newsroom/news/2026/09/23/mortgage-applications-decrease-in-latest-mba-weekly-survey" rel="noopener" target="_blank">MBA Weekly Applications Survey</a>. Treasury supplies the official daily curve; FRED supplies the historical 10-year series; Freddie Mac supplies the weekly PMMS benchmark; MBA supplies weekly application activity. The dashboard now reads these sources through a same-origin Netlify server-side aggregator, which avoids browser cross-origin restrictions and preserves a verified fallback if an upstream source is temporarily unavailable. MBS/MND values remain separately labeled because the free public feed is not dependable enough to treat as a live source.</div>
+<div class="intraday-strip" id="intradayStrip" aria-live="polite" hidden></div>
+<div class="byline">Sources: <a href="https://finance.yahoo.com/quote/%5ETNX/" rel="noopener" target="_blank">Yahoo Finance / Cboe ^TNX intraday</a> · <a href="https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve" rel="noopener" target="_blank">U.S. Treasury daily par yield curve</a> · <a href="https://fred.stlouisfed.org/series/DGS10" rel="noopener" target="_blank">FRED DGS10</a> · <a href="https://www.freddiemac.com/pmms" rel="noopener" target="_blank">Freddie Mac PMMS</a> · <a href="https://www.mba.org/news-and-research/newsroom/news/2026/09/23/mortgage-applications-decrease-in-latest-mba-weekly-survey" rel="noopener" target="_blank">MBA Weekly Applications Survey</a>. Yahoo Finance/Cboe ^TNX supplies the latest publicly available intraday 10-Year Treasury yield path for LIVE/1D; Treasury supplies the official daily curve; FRED supplies the historical 10-year series; Freddie Mac supplies the weekly PMMS benchmark; MBA supplies weekly application activity. The dashboard now reads these sources through a same-origin Netlify server-side aggregator, which avoids browser cross-origin restrictions and preserves a verified fallback if an upstream source is temporarily unavailable. MBS/MND values remain separately labeled because the free public feed is not dependable enough to treat as a live source.</div>
 </div>
 </div>
 <!-- RIGHT: Calendar + News -->
@@ -529,8 +537,12 @@
 
   // ---------- Interactive 10-Year Treasury chart ----------
   let chartHistory=FALLBACK.fred.slice();
-  let chartRange='week';
+  let chartRange='live';
   let chartSource='embedded verified FRED observations';
+  let intradaySession=null;
+  let intradayLastFetch=0;
+  let intradayError='';
+  let intradayTimer=null;
 
   function parseDate(s){ return new Date(s+'T12:00:00Z'); }
   function dateMs(s){ return parseDate(s).getTime(); }
@@ -553,8 +565,6 @@
     const clean=cleanChartRows(rows);
     if(clean.length<=2) return clean;
     const latest=clean[clean.length-1];
-    if(range==='live') return clean.slice(-8);
-    if(range==='day') return clean.slice(-2); // daily public series: latest close versus prior close
     const days={week:7,month:31,sixmonth:183}[range]||7;
     const cutoff=dateMs(latest.date)-days*86400000;
     const filtered=clean.filter(r=>dateMs(r.date)>=cutoff);
@@ -567,9 +577,143 @@
     return el;
   }
 
+  function fmtEtTime(ts,{seconds=false}={}){
+    const opts={timeZone:'America/New_York',hour:'numeric',minute:'2-digit',hour12:true};
+    if(seconds) opts.second='2-digit';
+    return new Intl.DateTimeFormat('en-US',opts).format(new Date(Number(ts)*1000)).replace(' AM','a').replace(' PM','p');
+  }
+
+  function fmtEtDate(ts){
+    return new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',weekday:'short',month:'short',day:'numeric'}).format(new Date(Number(ts)*1000));
+  }
+
+  function setChartMessage(message){
+    const svg=$('treasuryChartSvg');
+    if(!svg) return;
+    $('chartLine').setAttribute('d',''); $('chartArea').setAttribute('d','');
+    $('chartGrid').replaceChildren(); $('chartPoints').replaceChildren(); $('chartAxes').replaceChildren();
+    const txt=svgEl('text',{x:380,y:132,'text-anchor':'middle',class:'chart-axis'});
+    txt.textContent=message; $('chartAxes').appendChild(txt);
+    const strip=$('intradayStrip'); if(strip){strip.hidden=true;strip.replaceChildren();}
+  }
+
+  function renderIntradayStrip(session){
+    const strip=$('intradayStrip');
+    if(!strip) return;
+    strip.replaceChildren();
+    const rows=Array.isArray(session.hourly)?session.hourly:[];
+    rows.forEach((p,i)=>{
+      const chip=document.createElement('div');
+      const kind=p.kind==='open'?'open':p.kind==='current'?'current':'';
+      chip.className='intraday-chip '+kind;
+      const label=p.kind==='open'?'OPEN':p.kind==='current'?'CURRENT':fmtEtTime(p.ts).replace(':00','');
+      chip.innerHTML='<span class="t">'+label+'</span><span class="v">'+Number(p.value).toFixed(3)+'%</span>';
+      strip.appendChild(chip);
+    });
+    strip.hidden=rows.length===0;
+  }
+
+  function renderIntradayChart(session){
+    const svg=$('treasuryChartSvg');
+    if(!svg) return;
+    const raw=(session&&Array.isArray(session.points)?session.points:[]).filter(p=>Number.isFinite(Number(p.ts))&&Number.isFinite(Number(p.value))).map(p=>({ts:Number(p.ts),value:Number(p.value)})).sort((a,b)=>a.ts-b.ts);
+    if(raw.length<2){ setChartMessage(intradayError?'Intraday feed unavailable':'Loading today\'s 10-Year Treasury session…'); return; }
+
+    const W=760,H=260,left=52,right=18,top=18,bottom=34;
+    const x0=left,x1=W-right,y0=top,y1=H-bottom;
+    const vals=raw.map(d=>d.value);
+    const guides=[session?.meta?.previousClose,session?.meta?.open].map(Number).filter(Number.isFinite);
+    const min=Math.min(...vals,...guides),max=Math.max(...vals,...guides);
+    const pad=Math.max((max-min)*0.16,0.018);
+    const lo=min-pad,hi=max+pad,span=Math.max(hi-lo,0.04);
+    const t0=raw[0].ts,t1=Math.max(raw.at(-1).ts,t0+60);
+    const x=d=>x0+((d.ts-t0)/(t1-t0))*(x1-x0);
+    const y=v=>y1-((v-lo)/span)*(y1-y0);
+
+    const points=raw.map(d=>x(d).toFixed(2)+','+y(d.value).toFixed(2));
+    const linePath='M '+points.join(' L ');
+    const areaPath=linePath+' L '+x(raw.at(-1)).toFixed(2)+','+y1+' L '+x(raw[0]).toFixed(2)+','+y1+' Z';
+    $('chartLine').setAttribute('d',linePath); $('chartArea').setAttribute('d',areaPath);
+    const grid=$('chartGrid'),axes=$('chartAxes'),pts=$('chartPoints');
+    grid.replaceChildren(); axes.replaceChildren(); pts.replaceChildren();
+
+    for(let i=0;i<5;i++){
+      const yy=y0+i*(y1-y0)/4;
+      const value=hi-i*(hi-lo)/4;
+      grid.appendChild(svgEl('line',{x1:x0,x2:x1,y1:yy,y2:yy,class:'chart-grid'}));
+      const label=svgEl('text',{x:x0-8,y:yy+4,'text-anchor':'end',class:'chart-axis'});
+      label.textContent=value.toFixed(2)+'%'; axes.appendChild(label);
+    }
+
+    const prev=Number(session?.meta?.previousClose);
+    if(Number.isFinite(prev)){
+      grid.appendChild(svgEl('line',{x1:x0,x2:x1,y1:y(prev),y2:y(prev),stroke:'var(--c-cal)','stroke-width':'1','stroke-dasharray':'5 4','vector-effect':'non-scaling-stroke',opacity:'.72'}));
+      const label=svgEl('text',{x:x1-3,y:y(prev)-5,'text-anchor':'end',class:'chart-axis'}); label.textContent='Prev '+prev.toFixed(3)+'%'; axes.appendChild(label);
+    }
+    const open=Number(session?.meta?.open);
+    if(Number.isFinite(open)){
+      grid.appendChild(svgEl('line',{x1:x0,x2:x1,y1:y(open),y2:y(open),stroke:'var(--c-cal)','stroke-width':'1','stroke-dasharray':'2 4','vector-effect':'non-scaling-stroke',opacity:'.5'}));
+    }
+
+    const hourly=Array.isArray(session.hourly)?session.hourly:[];
+    hourly.forEach((p,i)=>{
+      const ts=Number(p.ts); if(!Number.isFinite(ts)||ts<t0||ts>t1) return;
+      const xx=x({ts});
+      grid.appendChild(svgEl('line',{x1:xx,x2:xx,y1:y0,y2:y1,stroke:'var(--line)','stroke-width':'1','stroke-dasharray':p.kind==='open'?'4 3':'2 5','vector-effect':'non-scaling-stroke',opacity:p.kind==='current'?'.7':'.55'}));
+      if(p.kind!=='current'){
+        const label=svgEl('text',{x:xx,y:H-10,'text-anchor':i===0?'start':'middle',class:'chart-hour-label'});
+        label.textContent=p.kind==='open'?'OPEN':fmtEtTime(ts).replace(':00',''); axes.appendChild(label);
+      }
+    });
+
+    const step=Math.max(1,Math.ceil(raw.length/60));
+    raw.forEach((d,i)=>{ if(i%step===0||i===raw.length-1) pts.appendChild(svgEl('circle',{cx:x(d),cy:y(d.value),r:i===raw.length-1?3.3:1.7,class:'chart-point'})); });
+
+    const latest=raw.at(-1);
+    const current=Number(session?.meta?.current);
+    const currentValue=Number.isFinite(current)?current:latest.value;
+    const delta=Number.isFinite(prev)?currentValue-prev:NaN;
+    setText('chartLatest',pct(currentValue)); setText('chartQuoteValue',pct(currentValue));
+    setText('chartQuotePrev',Number.isFinite(prev)?'Prev. '+pct(prev):'Prev. --');
+    const q=$('chartQuoteChange'); if(q){ q.textContent=Number.isFinite(delta)?(delta>0?'+':'')+delta.toFixed(3):'--'; q.classList.remove('up','down','flat'); q.classList.add(!Number.isFinite(delta)||Math.abs(delta)<0.0005?'flat':delta>0?'down':'up'); }
+
+    const sessionDate=fmtEtDate(latest.ts);
+    const lastTime=fmtEtTime(session?.meta?.regularMarketTime||latest.ts,{seconds:false});
+    const label=chartRange==='live'?'LIVE session · 5-minute public observations · auto-refreshing':'1-day session · 5-minute public observations · auto-refreshing';
+    setText('chartRangeLabel',label);
+    setText('chartRangeFoot',sessionDate+' · Session open '+pct(open)+' · Current '+pct(currentValue)+' as of '+lastTime+' ET');
+    renderIntradayStrip(session);
+
+    // Make the headline/table 10Y value current while retaining official daily data for other maturities.
+    setText('tile10y',currentValue.toFixed(2)); setText('rate10y',pct(currentValue));
+    setText('tag10y','public intraday ^TNX · '+lastTime+' ET');
+    setDelta('rate10yDelta',delta,'%'); setText('tile10yDelta',Number.isFinite(delta)?signed(delta)+'% vs prev close':'intraday');
+
+    const hit=$('chartHit'),tip=$('chartTip'),hoverLine=$('chartHoverLine'),hoverDot=$('chartHoverDot');
+    hit.onmousemove=evt=>{
+      const rect=svg.getBoundingClientRect();
+      const mouseX=((evt.clientX-rect.left)/rect.width)*W;
+      let best=0,bestDist=Infinity; raw.forEach((d,i)=>{const dist=Math.abs(x(d)-mouseX);if(dist<bestDist){best=i;bestDist=dist;}});
+      const d=raw[best],cx=x(d),cy=y(d.value);
+      hoverLine.setAttribute('x1',cx);hoverLine.setAttribute('x2',cx);hoverLine.style.display='block';
+      hoverDot.setAttribute('cx',cx);hoverDot.setAttribute('cy',cy);hoverDot.style.display='block';
+      tip.innerHTML='<div>'+fmtEtTime(d.ts)+' ET</div><strong>'+d.value.toFixed(3)+'%</strong>';
+      tip.style.display='block'; tip.style.left=Math.min(Math.max((cx/W)*100,3),78)+'%'; tip.style.top=Math.max((cy/H)*100-8,6)+'%';
+    };
+    hit.onmouseleave=()=>{hoverLine.style.display='none';hoverDot.style.display='none';tip.style.display='none';};
+  }
+
   function renderTreasuryChart(rows){
     const svg=$('treasuryChartSvg');
     if(!svg) return;
+    if(chartRange==='live'||chartRange==='day'){
+      if(intradaySession && Array.isArray(intradaySession.points) && intradaySession.points.length>=2){ renderIntradayChart(intradaySession); return; }
+      setChartMessage(intradayError?'Intraday feed unavailable — retry Refresh data':'Loading today\'s 10-Year Treasury session…');
+      setText('chartRangeLabel',chartRange==='live'?'LIVE session · loading public intraday feed':'1-day session · loading public intraday feed');
+      setText('chartRangeFoot',intradayError?intradayError:'Fetching session open, hourly path, and current 10-Year yield…');
+      return;
+    }
+    const strip=$('intradayStrip'); if(strip){strip.hidden=true;strip.replaceChildren();}
     const data=filterChartRows(rows,chartRange);
     if(data.length<2){ setText('chartRangeFoot','Not enough observations to draw this range'); return; }
 
@@ -635,14 +779,12 @@
     }
 
     const labels={
-      live:'Latest verified observations · public daily series (not tick-by-tick)',
-      day:'1-day move · latest official close vs prior close',
       week:'Weekly view · official daily 10-Year Treasury observations',
       month:'Monthly view · official daily 10-Year Treasury observations',
       sixmonth:'6-month view · official/verified 10-Year Treasury history'
     };
     setText('chartRangeLabel',labels[chartRange]);
-    const feet={live:'Latest 8 verified observations',day:'Latest close vs previous close',week:'Latest 1 week',month:'Latest 1 month',sixmonth:'Latest 6 months'};
+    const feet={week:'Latest 1 week',month:'Latest 1 month',sixmonth:'Latest 6 months'};
     setText('chartRangeFoot',feet[chartRange]+' · '+chartSource);
 
     const hit=$('chartHit'),tip=$('chartTip'),hoverLine=$('chartHoverLine'),hoverDot=$('chartHoverDot');
@@ -662,6 +804,39 @@
     hit.onmouseleave=()=>{hoverLine.style.display='none';hoverDot.style.display='none';tip.style.display='none';};
   }
 
+  async function loadIntradayData(){
+    const r=await fetch('/api/treasury-intraday',{cache:'no-store',headers:{'accept':'application/json'}});
+    if(!r.ok) throw new Error('Intraday Treasury service returned '+r.status);
+    const data=await r.json();
+    if(!data || data.status!=='live' || !Array.isArray(data.points) || data.points.length<2) throw new Error(data?.error||'Intraday Treasury response was incomplete');
+    return data;
+  }
+
+  async function refreshIntraday({silent=false}={}){
+    if(inRestrictedPreview || location.protocol==='file:') return false;
+    if(!silent) setText('chartRangeFoot','Refreshing intraday 10-Year Treasury session…');
+    try{
+      const data=await loadIntradayData();
+      intradaySession=data; intradayLastFetch=Date.now(); intradayError='';
+      if(chartRange==='live'||chartRange==='day') renderIntradayChart(data);
+      return true;
+    }catch(err){
+      intradayError='Intraday source unavailable · '+(err&&err.message?err.message:'unknown error');
+      if(chartRange==='live'||chartRange==='day') renderTreasuryChart(chartHistory);
+      return false;
+    }
+  }
+
+  function scheduleIntradayRefresh(){
+    if(intradayTimer) clearInterval(intradayTimer);
+    intradayTimer=setInterval(()=>{
+      if(document.visibilityState==='visible' && (chartRange==='live'||chartRange==='day')) refreshIntraday({silent:true});
+    },60000);
+    document.addEventListener('visibilitychange',()=>{
+      if(document.visibilityState==='visible' && (chartRange==='live'||chartRange==='day') && Date.now()-intradayLastFetch>45000) refreshIntraday({silent:true});
+    });
+  }
+
   function wireStickyOffset(){
     const dock=document.querySelector('.nav-dock');
     if(!dock) return;
@@ -677,7 +852,12 @@
       buttons.forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
       chartRange=btn.dataset.range || 'week';
-      renderTreasuryChart(chartHistory);
+      if(chartRange==='live'||chartRange==='day'){
+        renderTreasuryChart(chartHistory);
+        if(!intradaySession || Date.now()-intradayLastFetch>45000) refreshIntraday({silent:false});
+      }else{
+        renderTreasuryChart(chartHistory);
+      }
     }));
   }
 
@@ -788,6 +968,7 @@
     try{
       const data=await loadServerData();
       applyServerData(data);
+      if(chartRange==='live'||chartRange==='day') await refreshIntraday({silent:true});
     }catch(err){
       applySnapshot();
       setText('updateMode','Verified Fallback');
@@ -797,11 +978,15 @@
     }
   }
 
-  wireStickyOffset(); wireChartControls(); wireNews(); wireAdvisor();
+  wireStickyOffset(); wireChartControls(); wireNews(); wireAdvisor(); scheduleIntradayRefresh();
   const refreshBtn=$('refreshDataBtn'); if(refreshBtn) refreshBtn.addEventListener('click',refresh);
   window.__dailyBasisRefresh=refresh;
+  window.__dailyBasisRefreshIntraday=refreshIntraday;
   applySnapshot();
-  if(!inRestrictedPreview && location.protocol!=='file:') setTimeout(refresh,120);
+  if(!inRestrictedPreview && location.protocol!=='file:'){
+    setTimeout(()=>refreshIntraday({silent:false}),80);
+    setTimeout(refresh,180);
+  }
 })();
 </script>
 </body>

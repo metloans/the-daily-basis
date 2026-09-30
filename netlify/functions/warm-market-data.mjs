@@ -22,10 +22,19 @@ export default async () => {
     return;
   }
 
-  const url = new URL('/api/market-data', base).href;
-  const r = await fetch(url, { headers:{'accept':'application/json','user-agent':'TheDailyBasis-Warmer/1.0'} });
-  const text = await r.text();
-  console.log(`TDB warm ${r.status}: ${text.slice(0,220)}`);
+  const urls = [
+    new URL('/api/market-data', base).href,
+    new URL('/api/treasury-intraday', base).href
+  ];
+  for (const url of urls) {
+    try {
+      const r = await fetch(url, { headers:{'accept':'application/json','user-agent':'TheDailyBasis-Warmer/1.1'} });
+      const text = await r.text();
+      console.log(`TDB warm ${url} ${r.status}: ${text.slice(0,220)}`);
+    } catch (error) {
+      console.log(`TDB warm failed for ${url}: ${String(error?.message || error)}`);
+    }
+  }
 };
 
 // Run hourly on weekdays; the function itself selects 6:00 AM and 1:00 PM
