@@ -445,11 +445,11 @@
 <strong>Reference levels</strong>
 <label><input type="checkbox" id="showPrevious" checked> Previous close</label>
 <label><input type="checkbox" id="showOpen" checked> Session open</label>
-<label><input type="checkbox" id="showZones" checked> T-Watch zones</label>
+<label><input type="checkbox" id="showZones" checked> T-Watch zones · 1D only</label>
 <strong>T-Watch thresholds · bps from open</strong>
 <div class="threshold-fields"><label>Watch<input id="threshold-watch" type="number" min="0.1" max="100" step="0.1" value="2"></label><label>Elevated<input id="threshold-elevated" type="number" min="0.1" max="100" step="0.1" value="4"></label><label>Zone<input id="threshold-zone" type="number" min="0.1" max="100" step="0.1" value="6"></label></div>
 <button type="button" id="applyThresholds">Apply thresholds</button><div id="settingsStatus" role="status"></div>
-<p>Yield ↑ red · yield ↓ green. T-Watch is a configurable Treasury proxy, not a lender reprice signal or guarantee. Public data may be delayed.</p>
+<p>1D targets a 0.10-point (10 bp) window around the current yield, expanding for actual movement. Zones appear only on 1D. Off-scale reference values remain listed below the chart. Yield ↑ red · yield ↓ green. T-Watch is a configurable Treasury proxy, not a lender reprice signal or guarantee. Public data may be delayed.</p>
 </div>
 </div>
 <div class="chart-wrap" id="treasuryChart">
@@ -689,30 +689,29 @@
     const total=data.length;
     if(chartMode==='candle')data=data.filter(p=>p.ohlcComplete!==false&&core.validCandle(p));
     const range=chartRanges[chartRange],interval=intraday?range.minutes+'-minute':'daily';
-    setText('chartRangeLabel',range.label+' · '+interval+' · '+(usesYahoo?'Yahoo/Cboe ^TNX'+(chartMode==='candle'?' OHLC':''):'FRED DGS10'));
+    setText('chartRangeLabel',range.label+' · '+interval+(chartRange==='day'?' · tight auto scale':'')+' · '+(usesYahoo?'Yahoo/Cboe ^TNX'+(chartMode==='candle'?' OHLC':''):'FRED DGS10'));
     updateSessionReadout(cleanChartRows(rows));
     if(!data.length){
       const error=chartErrors.get(chartRange),message=usesYahoo?(error?'Chart feed unavailable — retry Refresh data':cached?'OHLC unavailable for this range':'Loading Treasury '+(chartMode==='candle'?'candles':'session')+'…'):'No daily observations available';
       chartMessage(message,W);setText('chartRangeFoot',error||'Waiting for source observations; no candles are estimated.');setText('chartLatest','—');return;
     }
     const meta=latestSession?.meta,open=core.number(meta?.open),previous=core.number(meta?.previousClose),zone=chartSettings.zone/100;
-    const values=data.flatMap(p=>chartMode==='candle'?[p.low,p.high]:[p.value]);
-    if(chartSettings.open&&Number.isFinite(open))values.push(open);
-    if(chartSettings.previous&&Number.isFinite(previous))values.push(previous);
-    if(chartSettings.zones&&Number.isFinite(open))values.push(open-zone,open+zone);
-    const min=Math.min(...values),max=Math.max(...values),pad=Math.max((max-min)*.12,.012),lo=min-pad,hi=max+pad;
+    const zonesActive=chartRange==='day'&&chartSettings.zones&&Number.isFinite(open);
+    const {lo,hi}=core.yieldDomain(data,{range:chartRange,mode:chartMode,current:meta?.current});
+    svg.dataset.yMin=lo.toFixed(5);svg.dataset.yMax=hi.toFixed(5);svg.dataset.zonesActive=String(zonesActive);
     const y=v=>y1-(v-lo)/(hi-lo)*(y1-y0),spacing=(x1-x0)/Math.max(data.length,1);
     const positions=new Map(data.map((p,i)=>[p,i])),x=p=>x0+spacing*(positions.get(p)+.5);
     const zones=$('chartZones'),grid=$('chartGrid'),axes=$('chartAxes');
-    if(chartSettings.zones&&Number.isFinite(open)){
+    if(zonesActive){
       const red=Math.min(y1,Math.max(y0,y(open+zone))),green=Math.min(y1,Math.max(y0,y(open-zone)));
-      zones.append(svgEl('rect',{x:x0,y:y0,width:x1-x0,height:red-y0,fill:'var(--down)',opacity:'.10'}),svgEl('rect',{x:x0,y:green,width:x1-x0,height:y1-green,fill:'var(--up)',opacity:'.10'}));
-      for(const [value,text,color] of [[open+zone,'RED ZONE','var(--down)'],[open-zone,'GREEN ZONE','var(--up)']]){const yy=y(value);grid.append(svgEl('line',{x1:x0,x2:x1,y1:yy,y2:yy,stroke:color,'stroke-dasharray':'2 4',opacity:'.55'}));const label=svgEl('text',{x:x1-3,y:yy-4,'text-anchor':'end',class:'chart-axis',style:'fill:'+color+';font-size:8px'});label.textContent=text;axes.append(label);}
+      if(red>y0)zones.append(svgEl('rect',{x:x0,y:y0,width:x1-x0,height:red-y0,fill:'var(--down)',opacity:'.10'}));
+      if(green<y1)zones.append(svgEl('rect',{x:x0,y:green,width:x1-x0,height:y1-green,fill:'var(--up)',opacity:'.10'}));
+      for(const [value,text,color] of [[open+zone,'RED ZONE','var(--down)'],[open-zone,'GREEN ZONE','var(--up)']]){if(value<lo||value>hi)continue;const yy=y(value);grid.append(svgEl('line',{x1:x0,x2:x1,y1:yy,y2:yy,stroke:color,'stroke-dasharray':'2 4',opacity:'.55'}));const label=svgEl('text',{x:x1-3,y:yy-4,'text-anchor':'end',class:'chart-axis',style:'fill:'+color+';font-size:8px'});label.textContent=text;axes.append(label);}
     }
-    for(let i=0;i<5;i++){const yy=y0+(y1-y0)*i/4,value=hi-(hi-lo)*i/4;grid.append(svgEl('line',{x1:x0,x2:x1,y1:yy,y2:yy,class:'chart-grid'}));const label=svgEl('text',{x:x0-6,y:yy+4,'text-anchor':'end',class:'chart-axis'});label.textContent=value.toFixed(2)+'%';axes.append(label);}
+    for(let i=0;i<5;i++){const yy=y0+(y1-y0)*i/4,value=hi-(hi-lo)*i/4;grid.append(svgEl('line',{x1:x0,x2:x1,y1:yy,y2:yy,class:'chart-grid'}));const label=svgEl('text',{x:x0-6,y:yy+4,'text-anchor':'end',class:'chart-axis'});label.textContent=value.toFixed(hi-lo<=.12?3:2)+'%';axes.append(label);}
     const references=$('chartReferences');
     for(const [enabled,value,label,color,dash] of [[chartSettings.previous,previous,'Prev','var(--ink-soft)','5 4'],[chartSettings.open,open,'Open','var(--c-rates)','2 3']]){
-      if(!enabled||!Number.isFinite(value))continue;const yy=y(value);references.append(svgEl('line',{x1:x0,x2:x1,y1:yy,y2:yy,stroke:color,'stroke-width':1,'stroke-dasharray':dash,'vector-effect':'non-scaling-stroke'}));const t=svgEl('text',{x:label==='Prev'?x1-3:x0+4,y:yy-4,'text-anchor':label==='Prev'?'end':'start',class:'chart-axis',style:'fill:'+color+';font-size:9px'});t.textContent=label+' '+value.toFixed(3);references.append(t);
+      if(!enabled||!Number.isFinite(value)||value<lo||value>hi)continue;const yy=y(value);references.append(svgEl('line',{x1:x0,x2:x1,y1:yy,y2:yy,stroke:color,'stroke-width':1,'stroke-dasharray':dash,'vector-effect':'non-scaling-stroke'}));const t=svgEl('text',{x:label==='Prev'?x1-3:x0+4,y:yy-4,'text-anchor':label==='Prev'?'end':'start',class:'chart-axis',style:'fill:'+color+';font-size:9px'});t.textContent=label+' '+value.toFixed(3);references.append(t);
     }
     if(chartMode==='candle'){
       const width=Math.max(.6,Math.min(10,spacing*.62));
