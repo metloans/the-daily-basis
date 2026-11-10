@@ -94,7 +94,7 @@ function parseFredCsv(csv) {
 
 async function loadFred() {
   const end = new Date();
-  const start = new Date(Date.now() - 200 * 86400000);
+  const start = new Date(Date.now() - 400 * 86400000);
   const url = `https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS10&cosd=${start.toISOString().slice(0,10)}&coed=${end.toISOString().slice(0,10)}`;
   const rows = parseFredCsv(await fetchText(url, 'text/csv,text/plain;q=0.9,*/*;q=0.8'));
   return { rows, url };
@@ -271,7 +271,7 @@ export default async (req) => {
       previous: prevT,
       changes: prevT ? { y2:delta(treasury.y2,prevT.y2), y5:delta(treasury.y5,prevT.y5), y10:delta(treasury.y10,prevT.y10), y30:delta(treasury.y30,prevT.y30) } : null
     },
-    fred: fredRows.slice(-160),
+    fred: fredRows.slice(-280),
     pmms: {
       date: pmms.date, y30: pmms.y30, y15: pmms.y15, previous: prevP,
       changes: prevP ? { y30:delta(pmms.y30,prevP.y30), y15:delta(pmms.y15,prevP.y15) } : null,

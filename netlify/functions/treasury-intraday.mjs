@@ -6,6 +6,7 @@ function withTimeout(ms = TIMEOUT_MS) {
 }
 
 function finiteNumber(v) {
+  if (v == null || v === '') return null;
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
 }
@@ -18,7 +19,30 @@ function normalizeYield(v) {
   return n > 20 ? n / 10 : n;
 }
 
-export function parseYahooChart(json) {
+const RANGES = { day: { sessions: 1, minutes: 10 }, twoday: { sessions: 2, minutes: 15 }, fiveday: { sessions: 5, minutes: 30 }, month:{daily:'1mo'},threemonth:{daily:'3mo'},sixmonth:{daily:'6mo'},year:{daily:'1y'} };
+const sessionFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' });
+function sessionKey(ts) {
+  return sessionFormatter.format(new Date(ts * 1000));
+}
+
+export function aggregatePoints(points, minutes) {
+  const buckets = new Map();
+  for (const p of points) {
+    const key = sessionKey(p.ts) + ':' + Math.floor(p.ts / (minutes * 60));
+    const bar = buckets.get(key);
+    if (!bar) buckets.set(key, { ...p });
+    else {
+      bar.high = bar.high == null || p.high == null ? null : Math.max(bar.high, p.high);
+      bar.low = bar.low == null || p.low == null ? null : Math.min(bar.low, p.low);
+      bar.close = p.close;
+      bar.value = p.value;
+      bar.ohlcComplete = bar.ohlcComplete !== false && p.ohlcComplete !== false;
+    }
+  }
+  return [...buckets.values()];
+}
+
+export function parseYahooChart(json, range = 'day') {
   const result = json?.chart?.result?.[0];
   if (!result) throw new Error(json?.chart?.error?.description || 'Yahoo Finance returned no ^TNX chart result');
 
@@ -28,23 +52,44 @@ export function parseYahooChart(json) {
   const points = [];
 
   for (let i = 0; i < Math.min(timestamps.length, closes.length); i++) {
-    const ts = Number(timestamps[i]);
+    const ts = finiteNumber(timestamps[i]);
     const value = normalizeYield(closes[i]);
-    if (Number.isFinite(ts) && Number.isFinite(value)) points.push({ ts, value: Number(value.toFixed(4)) });
+    if (Number.isFinite(ts) && Number.isFinite(value)) points.push({
+      ts, value: Number(value.toFixed(4)),
+      open: normalizeYield(quote.open?.[i]),
+      high: normalizeYield(quote.high?.[i]),
+      low: normalizeYield(quote.low?.[i]),
+      close: value,
+      ohlcComplete: [quote.open?.[i],quote.high?.[i],quote.low?.[i]].every(v=>normalizeYield(v)!=null)
+    });
   }
 
   if (points.length < 2) throw new Error('Yahoo Finance returned too few usable intraday ^TNX observations');
 
+  points.sort((a, b) => a.ts - b.ts);
+  const settings = RANGES[range] || RANGES.day;
+  if(settings.daily) return {
+    range, intervalMinutes:1440, sessionsAvailable:points.length, points,
+    hourly:[], meta:{dataGranularity:'1d',sourceGranularity:'1d',regularMarketTime:finiteNumber(result.meta?.regularMarketTime)??points.at(-1).ts}
+  };
+  const sessions = [...new Set(points.map(p => sessionKey(p.ts)))];
+  const selected = new Set(sessions.slice(-settings.sessions));
+  const selectedPoints = points.filter(p => selected.has(sessionKey(p.ts)));
+  const currentSession = points.filter(p => sessionKey(p.ts) === sessions.at(-1));
+  const previousSession = points.filter(p => sessionKey(p.ts) === sessions.at(-2));
   const meta = result.meta || {};
-  const previousClose = normalizeYield(meta.chartPreviousClose ?? meta.previousClose);
+  const previousClose = normalizeYield(meta.previousClose) ?? previousSession.at(-1)?.value ?? normalizeYield(meta.chartPreviousClose);
   const regularMarketPrice = normalizeYield(meta.regularMarketPrice);
   const dayHigh = normalizeYield(meta.regularMarketDayHigh);
   const dayLow = normalizeYield(meta.regularMarketDayLow);
-  const openFromQuote = Array.isArray(quote.open) ? quote.open.map(normalizeYield).find(Number.isFinite) : null;
-  const open = normalizeYield(meta.regularMarketOpen) ?? openFromQuote ?? points[0].value;
+  const open = normalizeYield(meta.regularMarketOpen) ?? currentSession[0].open;
 
   return {
-    points,
+    points: aggregatePoints(selectedPoints, settings.minutes),
+    hourly: hourlyCheckpoints(currentSession),
+    range,
+    intervalMinutes: settings.minutes,
+    sessionsAvailable: selected.size,
     meta: {
       symbol: meta.symbol || '^TNX',
       exchangeName: meta.exchangeName || 'Cboe Indices',
@@ -53,10 +98,11 @@ export function parseYahooChart(json) {
       current: regularMarketPrice ?? points.at(-1).value,
       previousClose,
       open,
-      high: dayHigh ?? Math.max(...points.map(p => p.value)),
-      low: dayLow ?? Math.min(...points.map(p => p.value)),
+      high: dayHigh ?? (currentSession.every(p=>Number.isFinite(p.high)) ? Math.max(...currentSession.map(p=>p.high)) : null),
+      low: dayLow ?? (currentSession.every(p=>Number.isFinite(p.low)) ? Math.min(...currentSession.map(p=>p.low)) : null),
       regularMarketTime: Number(meta.regularMarketTime) || points.at(-1).ts,
-      dataGranularity: meta.dataGranularity || '5m'
+      dataGranularity: settings.minutes + 'm',
+      sourceGranularity: meta.dataGranularity || '5m'
     }
   };
 }
@@ -87,8 +133,9 @@ export function hourlyCheckpoints(points) {
   return out;
 }
 
-async function loadYahooTnx() {
-  const path = '/v8/finance/chart/%5ETNX?interval=5m&range=1d&includePrePost=false&events=div%2Csplits';
+async function loadYahooTnx(range) {
+  const daily=RANGES[range]?.daily;
+  const path = '/v8/finance/chart/%5ETNX?interval='+(daily?'1d':'5m')+'&range='+(daily||'5d')+'&includePrePost=false&events=div%2Csplits';
   const urls = [`https://query1.finance.yahoo.com${path}`, `https://query2.finance.yahoo.com${path}`];
   let lastError = null;
   for (const url of urls) {
@@ -104,8 +151,8 @@ async function loadYahooTnx() {
       });
       if (!r.ok) throw new Error(`${r.status} ${r.statusText} from Yahoo Finance ^TNX`);
       const json = await r.json();
-      const parsed = parseYahooChart(json);
-      return { ...parsed, hourly: hourlyCheckpoints(parsed.points), url };
+      const parsed = parseYahooChart(json, range);
+      return { ...parsed, url };
     } catch (error) {
       lastError = error;
     }
@@ -120,7 +167,9 @@ export default async (req) => {
   if (req.method !== 'GET') return new Response('Method Not Allowed', { status: 405 });
 
   try {
-    const data = await loadYahooTnx();
+    const range = new URL(req.url).searchParams.get('range') || 'day';
+    if (!Object.hasOwn(RANGES, range)) return new Response(JSON.stringify({ status: 'unavailable', error: 'Unsupported intraday range' }), { status: 400, headers: { 'content-type': 'application/json' } });
+    const data = await loadYahooTnx(range);
     return new Response(JSON.stringify({
       schemaVersion: 1,
       generatedAt: new Date().toISOString(),

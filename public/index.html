@@ -228,6 +228,43 @@
   footer.legal strong{ color:var(--ink); }
 
 
+  /* One layout contract for every range, state, and future chart renderer.
+     Tracks, rather than content, determine the module's physical footprint. */
+  .grid{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
+  .grid > *, .card, .treasury-module > *{min-width:0}
+  .treasury-module{
+    --plot-height:262px;
+    display:grid;grid-template-rows:88px 36px var(--plot-height) 44px 72px;
+    gap:8px;margin-top:16px;min-width:0;
+    height:calc(272px + var(--plot-height));
+    min-height:calc(272px + var(--plot-height));
+    max-height:calc(272px + var(--plot-height));
+  }
+  .treasury-module .spark-head{display:block;margin:0;min-height:0;overflow:hidden}
+  .treasury-module .chart-quote{height:29px;flex-wrap:nowrap;white-space:nowrap;gap:8px;overflow-x:auto;scrollbar-width:thin}
+  .treasury-module .chart-sub{height:34px;overflow:auto;line-height:17px;overflow-wrap:anywhere}
+  .chart-toolbar{display:flex;align-items:center;gap:8px;overflow:hidden;min-height:0}
+  .treasury-module .chart-controls{flex:1;min-width:0;height:36px;flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;padding:2px}
+  .treasury-module .chart-controls button{flex:0 0 auto;min-width:38px;padding:5px 7px;white-space:nowrap}
+  /* Future mode/settings controls use this same reserved toolbar track. */
+  .chart-mode-controls{flex:0 0 auto;max-width:45%;overflow-x:auto;white-space:nowrap}
+  .treasury-module .chart-wrap{margin:0;width:100%;height:var(--plot-height);min-height:var(--plot-height);max-height:var(--plot-height);contain:size layout paint}
+  .treasury-module .chart-wrap > svg, .treasury-module .chart-wrap > canvas{display:block;position:absolute;inset:0;width:100%;height:100%;min-height:0;max-height:100%}
+  .treasury-module .chart-meta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;height:44px;margin:0;align-items:start;overflow:hidden;line-height:17px}
+  #chartRangeFoot{height:100%;overflow:auto;overflow-wrap:anywhere}
+  .chart-meta .latest{white-space:nowrap}
+  .treasury-module .intraday-strip{display:flex;flex-wrap:nowrap;align-items:start;height:72px;min-height:72px;max-height:72px;overflow-x:auto;overflow-y:hidden;margin:0;padding:2px 2px 12px;scrollbar-width:thin}
+  .treasury-module .intraday-strip[hidden]{display:flex;visibility:hidden}
+  .intraday-chip{white-space:nowrap}
+  #tag10y{height:34px;overflow:auto;line-height:17px}
+  #rates table{table-layout:fixed}
+  #rates th:first-child{width:60%}
+  #rates td.num{white-space:nowrap}
+  .chart-tip{min-width:0;max-width:calc(100% - 16px);transform:none;overflow-wrap:anywhere}
+  @media(max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+  @media(max-width:680px){.treasury-module{--plot-height:232px}}
+  @media(max-width:480px){#rates th:first-child{width:50%}#rates td.num{font-size:.75rem}}
+
   /* Chart quote / market desk readout */
   .chart-quote{display:flex;align-items:baseline;gap:9px;margin:4px 0 0;flex-wrap:wrap}
   .chart-quote-value{font-size:1.22rem;font-weight:700;color:var(--ink)}
@@ -267,6 +304,41 @@
     .quicknav a{white-space:nowrap;}
     .data-status{padding:0 14px 8px;}
   }
+  /* Both chart modes share all five original reserved tracks (534px / 504px). */
+  .treasury-module{grid-template-rows:56px 68px var(--plot-height) 44px 72px}
+  .treasury-module .chart-toolbar{position:relative;display:grid;grid-template-rows:32px 32px;gap:4px;overflow:visible}
+  .treasury-module .chart-controls{height:32px;max-width:100%;padding:1px 2px}
+  .chart-mode-row{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+  .treasury-module #chartModeControls{flex:0 0 auto;max-width:none;gap:4px;padding:1px 2px;overflow:visible}
+  .chart-settings-button,.chart-settings button{font-family:inherit;font-size:.72rem;font-weight:700;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);color:var(--ink);padding:5px 8px;cursor:pointer;white-space:nowrap}
+  .chart-settings-button{font-size:.72rem}
+  .chart-settings{position:absolute;top:68px;right:0;width:min(300px,100%);padding:12px;z-index:20;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);font-size:.75rem;max-height:390px;overflow:auto}
+  .chart-settings[hidden]{display:none}
+  .chart-settings strong{display:block;margin:4px 0 6px}
+  .chart-settings > label{display:flex;align-items:center;gap:6px;margin:7px 0}
+  .chart-settings input[type=checkbox]{accent-color:var(--c-rates)}
+  .threshold-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:8px 0}
+  .threshold-fields input{width:100%;padding:5px;border:1px solid var(--line);border-radius:5px;color:var(--ink);background:var(--surface-2)}
+  .chart-settings p{font-size:.69rem;color:var(--ink-soft);margin:8px 0 0}
+  #settingsStatus{font-size:.7rem;margin-top:5px}
+  #chartQuotePrev{display:none}
+  .treasury-module .chart-meta > div{height:44px;overflow:hidden;min-width:0}
+  .treasury-module .chart-meta .chart-sub{display:block;height:17px;line-height:17px;white-space:nowrap;overflow:auto;font-size:.69rem}
+  #chartRangeFoot{display:block;height:27px;font-size:.68rem;line-height:13px}
+  .chart-session{height:72px;min-height:72px;overflow:hidden;min-width:0}
+  .t-watch-row{height:22px;display:flex;align-items:center;gap:7px;white-space:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;font-size:.66rem}
+  .t-watch-badge{font-weight:700;flex:0 0 auto;padding:2px 5px;border-radius:5px;border:1px solid currentColor}
+  #tWatchMessage{color:var(--ink-soft)}
+  .session-stats{height:18px;white-space:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;font-family:ui-monospace,Consolas,monospace;font-size:.62rem;color:var(--ink-soft);line-height:16px}
+  .treasury-module .chart-session .intraday-strip{height:32px;min-height:32px;max-height:32px;align-items:start;padding:1px 1px 5px;gap:5px}
+  .chart-session .intraday-chip{display:flex;gap:5px;align-items:center;padding:3px 6px;min-width:0;border-radius:5px}
+  .chart-session .intraday-chip .t,.chart-session .intraday-chip .v{display:inline;font-size:.6rem;margin:0}
+  .chart-tip{font-family:ui-monospace,Consolas,monospace;font-size:.68rem}
+  #chartHit{touch-action:pan-y}
+.treasury-module .chart-controls button{padding:3px 7px;line-height:16px}
+.session-stats,.t-watch-row{scrollbar-width:none}
+.session-stats::-webkit-scrollbar,.t-watch-row::-webkit-scrollbar{display:none}
+@media(max-width:480px){.treasury-module .chart-controls button{min-width:37px}}
 </style>
 </head>
 <body>
@@ -345,25 +417,49 @@
 <tr><td class="instr">30‑Yr Treasury<span class="tag" id="tag30y">latest official daily close</span></td><td class="num" id="rate30y">5.28%</td><td class="num down" id="rate30yDelta">--</td></tr>
 </tbody>
 </table>
+<section class="treasury-module" aria-label="10-Year Treasury chart">
 <div class="spark-head">
 <div>
 <div class="chart-title">10-Year Treasury</div><div class="chart-quote" id="chartQuote"><span class="chart-quote-value num" id="chartQuoteValue">4.95%</span><span class="chart-quote-change flat" id="chartQuoteChange">--</span><span class="chart-quote-prev" id="chartQuotePrev">Prev. 4.83%</span></div>
-<div class="chart-sub" id="chartRangeLabel">Weekly view · official Treasury/FRED daily observations</div>
+
 </div>
+</div>
+<div class="chart-toolbar">
 <div aria-label="10-Year Treasury chart range" class="chart-controls" id="chartRangeControls" role="group">
-<button class="live active" data-range="live" type="button">LIVE</button>
-<button data-range="day" type="button">1D</button>
-<button data-range="week" type="button">1W</button>
-<button data-range="month" type="button">1M</button>
-<button data-range="sixmonth" type="button">6M</button>
+<button class="active" aria-pressed="true" data-range="day" type="button">1D</button>
+<button aria-pressed="false" data-range="twoday" type="button">2D</button>
+<button aria-pressed="false" data-range="fiveday" type="button">5D</button>
+<button aria-pressed="false" data-range="month" type="button">1M</button>
+<button aria-pressed="false" data-range="threemonth" type="button">3M</button>
+<button aria-pressed="false" data-range="sixmonth" type="button">6M</button>
+<button aria-pressed="false" data-range="year" type="button">1Y</button>
+</div>
+<div class="chart-mode-row">
+<div class="chart-controls chart-mode-controls" id="chartModeControls" role="group" aria-label="Chart type">
+<button class="active" aria-pressed="true" data-mode="line" type="button">Line</button>
+<button aria-pressed="false" data-mode="candle" type="button">Candlestick</button>
+</div>
+<button id="chartSettingsButton" class="chart-settings-button" aria-expanded="false" aria-controls="chartSettings" type="button">⚙ Settings</button>
+</div>
+<div id="chartSettings" class="chart-settings" role="group" aria-label="Chart settings" hidden>
+<strong>Reference levels</strong>
+<label><input type="checkbox" id="showPrevious" checked> Previous close</label>
+<label><input type="checkbox" id="showOpen" checked> Session open</label>
+<label><input type="checkbox" id="showZones" checked> T-Watch zones</label>
+<strong>T-Watch thresholds · bps from open</strong>
+<div class="threshold-fields"><label>Watch<input id="threshold-watch" type="number" min="0.1" max="100" step="0.1" value="2"></label><label>Elevated<input id="threshold-elevated" type="number" min="0.1" max="100" step="0.1" value="4"></label><label>Zone<input id="threshold-zone" type="number" min="0.1" max="100" step="0.1" value="6"></label></div>
+<button type="button" id="applyThresholds">Apply thresholds</button><div id="settingsStatus" role="status"></div>
+<p>Yield ↑ red · yield ↓ green. T-Watch is a configurable Treasury proxy, not a lender reprice signal or guarantee. Public data may be delayed.</p>
 </div>
 </div>
 <div class="chart-wrap" id="treasuryChart">
 <svg aria-label="10-Year Treasury interactive chart" id="treasuryChartSvg" preserveaspectratio="none" role="img" viewbox="0 0 760 260">
-<g id="chartGrid"></g>
-<path class="chart-area" id="chartArea"></path>
-<path class="chart-line" id="chartLine"></path>
-<g id="chartPoints"></g>
+<defs><clipPath id="chartPlotClip"><rect id="chartClipRect"></rect></clipPath></defs>
+<g id="chartZones" clip-path="url(#chartPlotClip)"></g>
+<g id="chartGrid" clip-path="url(#chartPlotClip)"></g>
+<path class="chart-area" id="chartArea" clip-path="url(#chartPlotClip)"></path>
+<path class="chart-line" id="chartLine" clip-path="url(#chartPlotClip)"></path>
+<g id="chartCandles" clip-path="url(#chartPlotClip)"></g><g id="chartPoints" clip-path="url(#chartPlotClip)"></g><g id="chartReferences" clip-path="url(#chartPlotClip)"></g>
 <g id="chartAxes"></g>
 <line id="chartHoverLine" opacity=".45" stroke="var(--navy-strong)" stroke-dasharray="4 4" style="display:none" vector-effect="non-scaling-stroke" x1="0" x2="0" y1="18" y2="228"></line>
 <circle class="chart-hover" cx="0" cy="0" id="chartHoverDot" r="4" style="display:none"></circle>
@@ -372,11 +468,16 @@
 <div class="chart-tip" id="chartTip"></div>
 </div>
 <div class="chart-meta">
-<span id="chartRangeFoot">Loading intraday 10-Year Treasury session…</span>
+<div><span class="chart-sub" id="chartRangeLabel">1D · 10-minute public observations</span><span id="chartRangeFoot">Loading intraday 10-Year Treasury session…</span></div>
 <span class="latest" id="chartLatest">4.83%</span>
 </div>
-<div class="intraday-strip" id="intradayStrip" aria-live="polite" hidden></div>
-<div class="byline">Sources: <a href="https://finance.yahoo.com/quote/%5ETNX/" rel="noopener" target="_blank">Yahoo Finance / Cboe ^TNX intraday</a> · <a href="https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve" rel="noopener" target="_blank">U.S. Treasury daily par yield curve</a> · <a href="https://fred.stlouisfed.org/series/DGS10" rel="noopener" target="_blank">FRED DGS10</a> · <a href="https://www.freddiemac.com/pmms" rel="noopener" target="_blank">Freddie Mac PMMS</a> · <a href="https://www.mba.org/news-and-research/newsroom/news/2026/09/23/mortgage-applications-decrease-in-latest-mba-weekly-survey" rel="noopener" target="_blank">MBA Weekly Applications Survey</a>. Yahoo Finance/Cboe ^TNX supplies the latest publicly available intraday 10-Year Treasury yield path for LIVE/1D; Treasury supplies the official daily curve; FRED supplies the historical 10-year series; Freddie Mac supplies the weekly PMMS benchmark; MBA supplies weekly application activity. The dashboard now reads these sources through a same-origin Netlify server-side aggregator, which avoids browser cross-origin restrictions and preserves a verified fallback if an upstream source is temporarily unavailable. MBS/MND values remain separately labeled because the free public feed is not dependable enough to treat as a live source.</div>
+<div class="chart-session">
+<div class="t-watch-row" tabindex="0" aria-label="T-Watch session risk"><span class="t-watch-badge flat" id="tWatchBadge">T-Watch: Unavailable</span><span id="tWatchMessage">Waiting for intraday session data</span></div>
+<div id="sessionStats" class="session-stats" tabindex="0" aria-label="Session reference values">Session values unavailable</div>
+<div class="intraday-strip" id="intradayStrip" aria-label="Session checkpoints; scroll for more" tabindex="0" hidden></div>
+</div>
+</section>
+<div class="byline">Sources: <a href="https://finance.yahoo.com/quote/%5ETNX/" rel="noopener" target="_blank">Yahoo Finance / Cboe ^TNX intraday</a> · <a href="https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve" rel="noopener" target="_blank">U.S. Treasury daily par yield curve</a> · <a href="https://fred.stlouisfed.org/series/DGS10" rel="noopener" target="_blank">FRED DGS10</a> · <a href="https://www.freddiemac.com/pmms" rel="noopener" target="_blank">Freddie Mac PMMS</a> · <a href="https://www.mba.org/news-and-research/newsroom/news/2026/09/23/mortgage-applications-decrease-in-latest-mba-weekly-survey" rel="noopener" target="_blank">MBA Weekly Applications Survey</a>. Yahoo Finance/Cboe ^TNX supplies the latest publicly available intraday 10-Year Treasury yield path for 1D/2D/5D; Treasury supplies the official daily curve; FRED supplies the daily line-chart history; Yahoo/Cboe supplies daily OHLC for candlesticks; Freddie Mac supplies the weekly PMMS benchmark; MBA supplies weekly application activity. The dashboard now reads these sources through a same-origin Netlify server-side aggregator, which avoids browser cross-origin restrictions and preserves a verified fallback if an upstream source is temporarily unavailable. MBS/MND values remain separately labeled because the free public feed is not dependable enough to treat as a live source.</div>
 </div>
 </div>
 <!-- RIGHT: Calendar + News -->
@@ -493,6 +594,7 @@
 <footer class="legal">
 <strong>FOR MORTGAGE LENDER USE.</strong> Rates, prices, and yields shown are market indices and third‑party data snapshots for general informational purposes only — they are illustrative, not a quote, and are subject to change without notice. They do not represent terms available to any specific borrower; actual rates, pricing, and eligibility depend on credit profile, loan program, property, and underwriting factors, and require review by a licensed loan officer. The Float vs. Lock Advisor is a directional, rules‑based gauge of same‑day market tone only — it is not individualized financial or legal advice, does not guarantee future pricing, and does not replace your own judgment or applicable lender lock policies. Before sharing any version of this page with clients or prospects, route the content through Compliance and Legal for review of rate‑related claims, required disclosures, and Fair Housing/ECOA/UDAAP considerations. Prepared by Michael Ross — NMLS #42104. Equal Housing Opportunity.
 </footer>
+<script src="treasury-core.js"></script>
 <script>
 (function(){
   'use strict';
@@ -535,331 +637,132 @@
     el.classList.add(!Number.isFinite(n)||Math.abs(n)<0.005 ? 'flat' : (n>0?'down':'up'));
   }
 
-  // ---------- Interactive 10-Year Treasury chart ----------
-  let chartHistory=FALLBACK.fred.slice();
-  let chartRange='live';
-  let chartSource='embedded verified FRED observations';
-  let intradaySession=null;
-  let intradayLastFetch=0;
-  let intradayError='';
-  let intradayTimer=null;
-
-  function parseDate(s){ return new Date(s+'T12:00:00Z'); }
-  function dateMs(s){ return parseDate(s).getTime(); }
-  function fmtDate(s,range){
-    const d=parseDate(s);
-    if(range==='sixmonth') return d.toLocaleDateString(undefined,{month:'short',day:'numeric'});
-    return d.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+  // ---------- Treasury chart: one fixed viewport for both renderers ----------
+  const core=window.TDBTreasuryCore;
+  const chartRanges={day:{label:'1D',sessions:1,minutes:10},twoday:{label:'2D',sessions:2,minutes:15},fiveday:{label:'5D',sessions:5,minutes:30},month:{label:'1M',days:31},threemonth:{label:'3M',days:92},sixmonth:{label:'6M',days:183},year:{label:'1Y',days:366}};
+  let chartHistory=FALLBACK.fred.slice(),chartRange='day',chartMode='line',chartSource='embedded verified FRED observations';
+  let latestSession=null,sessionFailed=false,intradayTimer=null;
+  const chartCache=new Map(),chartPending=new Map(),chartErrors=new Map();
+  const isIntraday=()=>!!chartRanges[chartRange].minutes;
+  let chartSettings={previous:true,open:true,zones:true,watch:2,elevated:4,zone:6};
+  try{const saved=JSON.parse(localStorage.getItem('tdb-chart-settings-v2')||'null');if(saved&&saved.watch>0&&saved.elevated>saved.watch&&saved.zone>saved.elevated) chartSettings={...chartSettings,...saved};}catch(_){}
+  const parseDate=s=>new Date(s+'T12:00:00Z');
+  const dateMs=s=>parseDate(s).getTime();
+  const fmtDate=s=>parseDate(s).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+  const fmtEtTime=ts=>new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',hour:'numeric',minute:'2-digit',hour12:true}).format(new Date(ts*1000)).replace(' AM','a').replace(' PM','p');
+  const fmtEtDate=ts=>new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',month:'short',day:'numeric'}).format(new Date(ts*1000));
+  const valueText=v=>Number.isFinite(core.number(v))?core.number(v).toFixed(3)+'%':'—';
+  const bpText=v=>Number.isFinite(v)?(v>0?'+':'')+v.toFixed(1)+' bps':'—';
+  function svgEl(name,attrs={}){const el=document.createElementNS('http://www.w3.org/2000/svg',name);Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,String(v)));return el;}
+  function cleanChartRows(rows){const seen=new Map();(rows||[]).forEach(p=>{if(/^\d{4}-\d{2}-\d{2}$/.test(p.date)&&Number.isFinite(core.number(p.value))) seen.set(p.date,{date:p.date,value:Number(p.value)});});return [...seen.values()].sort((a,b)=>a.date.localeCompare(b.date));}
+  function filterChartRows(rows){const all=cleanChartRows(rows),last=all.at(-1);return last?all.filter(p=>dateMs(p.date)>=dateMs(last.date)-chartRanges[chartRange].days*86400000):[];}
+  function resetChartHover(){['chartTip','chartHoverLine','chartHoverDot'].forEach(id=>$(id).style.display='none');const hit=$('chartHit');hit.onpointermove=null;hit.onpointerdown=null;hit.onpointerleave=null;}
+  function updateSessionReadout(fallbackRows=[]){
+    const meta=latestSession?.meta,w=core.watch(meta,Date.now(),chartSettings),last=fallbackRows.at(-1),prev=fallbackRows.at(-2);
+    setText('chartQuoteValue',meta?valueText(meta.current):last?valueText(last.value):'—');
+    const change=$('chartQuoteChange');change.textContent=meta?bpText(w.move)+' from open':last&&prev?bpText((last.value-prev.value)*100)+' vs prior daily':'—';change.className='chart-quote-change '+w.tone;
+    const stale=w.stale||sessionFailed;
+    setText('tWatchBadge','T-Watch: '+w.state);
+    $('tWatchBadge').className='t-watch-badge '+w.tone;
+    setText('tWatchMessage',(meta?(sessionFailed?'Feed unavailable · last observation · ':stale?'Last observation · ':''):'')+w.message);
+    setText('sessionStats',meta?'PREV '+valueText(meta.previousClose)+'   OPEN '+valueText(meta.open)+'   LOW '+valueText(meta.low)+'   HIGH '+valueText(meta.high)+'   AS OF '+fmtEtDate(meta.regularMarketTime)+' '+fmtEtTime(meta.regularMarketTime)+' ET':'Session open / previous close / day high / low unavailable');
+    $('sessionStats').title=$('sessionStats').textContent;
+    const strip=$('intradayStrip'),rows=isIntraday()?(latestSession?.hourly||[]):[];
+    const scrollLeft=strip.scrollLeft;strip.replaceChildren();
+    rows.forEach(p=>{const chip=document.createElement('div');chip.className='intraday-chip '+(p.kind==='open'?'open':p.kind==='current'?'current':'');const t=document.createElement('span'),v=document.createElement('span');t.className='t';v.className='v';t.textContent=p.kind==='open'?'OPEN':p.kind==='current'?'NOW':fmtEtTime(p.ts);v.textContent=valueText(p.value);chip.append(t,v);strip.append(chip);});
+    strip.hidden=!rows.length;strip.scrollLeft=scrollLeft;
+    if(meta){const current=core.number(meta.current),delta=current-core.number(meta.previousClose);setText('tile10y',current.toFixed(2));setText('rate10y',pct(current));setText('tag10y',(stale?'last public ^TNX · ':'public intraday ^TNX · ')+fmtEtTime(meta.regularMarketTime)+' ET');setDelta('rate10yDelta',delta,'%');setText('tile10yDelta',Number.isFinite(delta)?signed(delta)+'% vs prev close':'public intraday');}
   }
-
-  function cleanChartRows(rows){
-    const seen=new Map();
-    (rows||[]).forEach(r=>{
-      const value=Number(r && r.value);
-      if(r && /^\d{4}-\d{2}-\d{2}$/.test(r.date||'') && Number.isFinite(value)) seen.set(r.date,{date:r.date,value});
-    });
-    return [...seen.values()].sort((a,b)=>a.date.localeCompare(b.date));
+  function chartMessage(message,W){
+    const text=svgEl('text',{'text-anchor':'middle',class:'chart-axis'}),lines=[''],limit=Math.floor((W-28)/6);
+    message.split(' ').forEach(word=>{if((lines.at(-1)+' '+word).trim().length>limit)lines.push(word);else lines[lines.length-1]=(lines.at(-1)+' '+word).trim();});
+    lines.forEach((line,i)=>{const span=svgEl('tspan',{x:W/2,y:128+(i-(lines.length-1)/2)*16});span.textContent=line;text.append(span);});$('chartAxes').append(text);
   }
-
-  function filterChartRows(rows,range){
-    const clean=cleanChartRows(rows);
-    if(clean.length<=2) return clean;
-    const latest=clean[clean.length-1];
-    const days={week:7,month:31,sixmonth:183}[range]||7;
-    const cutoff=dateMs(latest.date)-days*86400000;
-    const filtered=clean.filter(r=>dateMs(r.date)>=cutoff);
-    return filtered.length>=2 ? filtered : clean.slice(-2);
-  }
-
-  function svgEl(name,attrs={}){
-    const el=document.createElementNS('http://www.w3.org/2000/svg',name);
-    Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,String(v)));
-    return el;
-  }
-
-  function fmtEtTime(ts,{seconds=false}={}){
-    const opts={timeZone:'America/New_York',hour:'numeric',minute:'2-digit',hour12:true};
-    if(seconds) opts.second='2-digit';
-    return new Intl.DateTimeFormat('en-US',opts).format(new Date(Number(ts)*1000)).replace(' AM','a').replace(' PM','p');
-  }
-
-  function fmtEtDate(ts){
-    return new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',weekday:'short',month:'short',day:'numeric'}).format(new Date(Number(ts)*1000));
-  }
-
-  function setChartMessage(message){
-    const svg=$('treasuryChartSvg');
-    if(!svg) return;
-    $('chartLine').setAttribute('d',''); $('chartArea').setAttribute('d','');
-    $('chartGrid').replaceChildren(); $('chartPoints').replaceChildren(); $('chartAxes').replaceChildren();
-    const txt=svgEl('text',{x:380,y:132,'text-anchor':'middle',class:'chart-axis'});
-    txt.textContent=message; $('chartAxes').appendChild(txt);
-    const strip=$('intradayStrip'); if(strip){strip.hidden=true;strip.replaceChildren();}
-  }
-
-  function renderIntradayStrip(session){
-    const strip=$('intradayStrip');
-    if(!strip) return;
-    strip.replaceChildren();
-    const rows=Array.isArray(session.hourly)?session.hourly:[];
-    rows.forEach((p,i)=>{
-      const chip=document.createElement('div');
-      const kind=p.kind==='open'?'open':p.kind==='current'?'current':'';
-      chip.className='intraday-chip '+kind;
-      const label=p.kind==='open'?'OPEN':p.kind==='current'?'CURRENT':fmtEtTime(p.ts).replace(':00','');
-      chip.innerHTML='<span class="t">'+label+'</span><span class="v">'+Number(p.value).toFixed(3)+'%</span>';
-      strip.appendChild(chip);
-    });
-    strip.hidden=rows.length===0;
-  }
-
-  function renderIntradayChart(session){
-    const svg=$('treasuryChartSvg');
-    if(!svg) return;
-    const raw=(session&&Array.isArray(session.points)?session.points:[]).filter(p=>Number.isFinite(Number(p.ts))&&Number.isFinite(Number(p.value))).map(p=>({ts:Number(p.ts),value:Number(p.value)})).sort((a,b)=>a.ts-b.ts);
-    if(raw.length<2){ setChartMessage(intradayError?'Intraday feed unavailable':'Loading today\'s 10-Year Treasury session…'); return; }
-
-    const W=760,H=260,left=52,right=18,top=18,bottom=34;
-    const x0=left,x1=W-right,y0=top,y1=H-bottom;
-    const vals=raw.map(d=>d.value);
-    const guides=[session?.meta?.previousClose,session?.meta?.open].map(Number).filter(Number.isFinite);
-    const min=Math.min(...vals,...guides),max=Math.max(...vals,...guides);
-    const pad=Math.max((max-min)*0.16,0.018);
-    const lo=min-pad,hi=max+pad,span=Math.max(hi-lo,0.04);
-    const t0=raw[0].ts,t1=Math.max(raw.at(-1).ts,t0+60);
-    const x=d=>x0+((d.ts-t0)/(t1-t0))*(x1-x0);
-    const y=v=>y1-((v-lo)/span)*(y1-y0);
-
-    const points=raw.map(d=>x(d).toFixed(2)+','+y(d.value).toFixed(2));
-    const linePath='M '+points.join(' L ');
-    const areaPath=linePath+' L '+x(raw.at(-1)).toFixed(2)+','+y1+' L '+x(raw[0]).toFixed(2)+','+y1+' Z';
-    $('chartLine').setAttribute('d',linePath); $('chartArea').setAttribute('d',areaPath);
-    const grid=$('chartGrid'),axes=$('chartAxes'),pts=$('chartPoints');
-    grid.replaceChildren(); axes.replaceChildren(); pts.replaceChildren();
-
-    for(let i=0;i<5;i++){
-      const yy=y0+i*(y1-y0)/4;
-      const value=hi-i*(hi-lo)/4;
-      grid.appendChild(svgEl('line',{x1:x0,x2:x1,y1:yy,y2:yy,class:'chart-grid'}));
-      const label=svgEl('text',{x:x0-8,y:yy+4,'text-anchor':'end',class:'chart-axis'});
-      label.textContent=value.toFixed(2)+'%'; axes.appendChild(label);
-    }
-
-    const prev=Number(session?.meta?.previousClose);
-    if(Number.isFinite(prev)){
-      grid.appendChild(svgEl('line',{x1:x0,x2:x1,y1:y(prev),y2:y(prev),stroke:'var(--c-cal)','stroke-width':'1','stroke-dasharray':'5 4','vector-effect':'non-scaling-stroke',opacity:'.72'}));
-      const label=svgEl('text',{x:x1-3,y:y(prev)-5,'text-anchor':'end',class:'chart-axis'}); label.textContent='Prev '+prev.toFixed(3)+'%'; axes.appendChild(label);
-    }
-    const open=Number(session?.meta?.open);
-    if(Number.isFinite(open)){
-      grid.appendChild(svgEl('line',{x1:x0,x2:x1,y1:y(open),y2:y(open),stroke:'var(--c-cal)','stroke-width':'1','stroke-dasharray':'2 4','vector-effect':'non-scaling-stroke',opacity:'.5'}));
-    }
-
-    const hourly=Array.isArray(session.hourly)?session.hourly:[];
-    hourly.forEach((p,i)=>{
-      const ts=Number(p.ts); if(!Number.isFinite(ts)||ts<t0||ts>t1) return;
-      const xx=x({ts});
-      grid.appendChild(svgEl('line',{x1:xx,x2:xx,y1:y0,y2:y1,stroke:'var(--line)','stroke-width':'1','stroke-dasharray':p.kind==='open'?'4 3':'2 5','vector-effect':'non-scaling-stroke',opacity:p.kind==='current'?'.7':'.55'}));
-      if(p.kind!=='current'){
-        const label=svgEl('text',{x:xx,y:H-10,'text-anchor':i===0?'start':'middle',class:'chart-hour-label'});
-        label.textContent=p.kind==='open'?'OPEN':fmtEtTime(ts).replace(':00',''); axes.appendChild(label);
-      }
-    });
-
-    const step=Math.max(1,Math.ceil(raw.length/60));
-    raw.forEach((d,i)=>{ if(i%step===0||i===raw.length-1) pts.appendChild(svgEl('circle',{cx:x(d),cy:y(d.value),r:i===raw.length-1?3.3:1.7,class:'chart-point'})); });
-
-    const latest=raw.at(-1);
-    const current=Number(session?.meta?.current);
-    const currentValue=Number.isFinite(current)?current:latest.value;
-    const delta=Number.isFinite(prev)?currentValue-prev:NaN;
-    setText('chartLatest',pct(currentValue)); setText('chartQuoteValue',pct(currentValue));
-    setText('chartQuotePrev',Number.isFinite(prev)?'Prev. '+pct(prev):'Prev. --');
-    const q=$('chartQuoteChange'); if(q){ q.textContent=Number.isFinite(delta)?(delta>0?'+':'')+delta.toFixed(3):'--'; q.classList.remove('up','down','flat'); q.classList.add(!Number.isFinite(delta)||Math.abs(delta)<0.0005?'flat':delta>0?'down':'up'); }
-
-    const sessionDate=fmtEtDate(latest.ts);
-    const lastTime=fmtEtTime(session?.meta?.regularMarketTime||latest.ts,{seconds:false});
-    const label=chartRange==='live'?'LIVE session · 5-minute public observations · auto-refreshing':'1-day session · 5-minute public observations · auto-refreshing';
-    setText('chartRangeLabel',label);
-    setText('chartRangeFoot',sessionDate+' · Session open '+pct(open)+' · Current '+pct(currentValue)+' as of '+lastTime+' ET');
-    renderIntradayStrip(session);
-
-    // Make the headline/table 10Y value current while retaining official daily data for other maturities.
-    setText('tile10y',currentValue.toFixed(2)); setText('rate10y',pct(currentValue));
-    setText('tag10y','public intraday ^TNX · '+lastTime+' ET');
-    setDelta('rate10yDelta',delta,'%'); setText('tile10yDelta',Number.isFinite(delta)?signed(delta)+'% vs prev close':'intraday');
-
-    const hit=$('chartHit'),tip=$('chartTip'),hoverLine=$('chartHoverLine'),hoverDot=$('chartHoverDot');
-    hit.onmousemove=evt=>{
-      const rect=svg.getBoundingClientRect();
-      const mouseX=((evt.clientX-rect.left)/rect.width)*W;
-      let best=0,bestDist=Infinity; raw.forEach((d,i)=>{const dist=Math.abs(x(d)-mouseX);if(dist<bestDist){best=i;bestDist=dist;}});
-      const d=raw[best],cx=x(d),cy=y(d.value);
-      hoverLine.setAttribute('x1',cx);hoverLine.setAttribute('x2',cx);hoverLine.style.display='block';
-      hoverDot.setAttribute('cx',cx);hoverDot.setAttribute('cy',cy);hoverDot.style.display='block';
-      tip.innerHTML='<div>'+fmtEtTime(d.ts)+' ET</div><strong>'+d.value.toFixed(3)+'%</strong>';
-      tip.style.display='block'; tip.style.left=Math.min(Math.max((cx/W)*100,3),78)+'%'; tip.style.top=Math.max((cy/H)*100-8,6)+'%';
-    };
-    hit.onmouseleave=()=>{hoverLine.style.display='none';hoverDot.style.display='none';tip.style.display='none';};
-  }
-
   function renderTreasuryChart(rows){
-    const svg=$('treasuryChartSvg');
-    if(!svg) return;
-    if(chartRange==='live'||chartRange==='day'){
-      if(intradaySession && Array.isArray(intradaySession.points) && intradaySession.points.length>=2){ renderIntradayChart(intradaySession); return; }
-      setChartMessage(intradayError?'Intraday feed unavailable — retry Refresh data':'Loading today\'s 10-Year Treasury session…');
-      setText('chartRangeLabel',chartRange==='live'?'LIVE session · loading public intraday feed':'1-day session · loading public intraday feed');
-      setText('chartRangeFoot',intradayError?intradayError:'Fetching session open, hourly path, and current 10-Year yield…');
-      return;
+    const svg=$('treasuryChartSvg');if(!svg)return;resetChartHover();
+    const W=Math.max(220,$('treasuryChart').clientWidth),H=260,x0=49,x1=W-12,y0=18,y1=226;
+    svg.setAttribute('viewBox','0 0 '+W+' '+H);svg.setAttribute('aria-label','10-Year Treasury '+(chartMode==='line'?'line':'candlestick')+' chart, '+chartRanges[chartRange].label);
+    $('chartHit').setAttribute('width',W);$('chartClipRect').setAttribute('x',x0-1);$('chartClipRect').setAttribute('y',y0);$('chartClipRect').setAttribute('width',x1-x0+2);$('chartClipRect').setAttribute('height',y1-y0);
+    ['chartZones','chartGrid','chartCandles','chartPoints','chartReferences','chartAxes'].forEach(id=>$(id).replaceChildren());$('chartLine').setAttribute('d','');$('chartArea').setAttribute('d','');
+    const intraday=isIntraday(),usesYahoo=intraday||chartMode==='candle',cached=chartCache.get(chartRange),raw=usesYahoo?(cached?.data.points||[]):filterChartRows(rows);
+    let data=raw.filter(p=>Number.isFinite(core.number(p.value))&&(!usesYahoo||Number.isFinite(core.number(p.ts))));
+    const total=data.length;
+    if(chartMode==='candle')data=data.filter(p=>p.ohlcComplete!==false&&core.validCandle(p));
+    const range=chartRanges[chartRange],interval=intraday?range.minutes+'-minute':'daily';
+    setText('chartRangeLabel',range.label+' · '+interval+' · '+(usesYahoo?'Yahoo/Cboe ^TNX'+(chartMode==='candle'?' OHLC':''):'FRED DGS10'));
+    updateSessionReadout(cleanChartRows(rows));
+    if(!data.length){
+      const error=chartErrors.get(chartRange),message=usesYahoo?(error?'Chart feed unavailable — retry Refresh data':cached?'OHLC unavailable for this range':'Loading Treasury '+(chartMode==='candle'?'candles':'session')+'…'):'No daily observations available';
+      chartMessage(message,W);setText('chartRangeFoot',error||'Waiting for source observations; no candles are estimated.');setText('chartLatest','—');return;
     }
-    const strip=$('intradayStrip'); if(strip){strip.hidden=true;strip.replaceChildren();}
-    const data=filterChartRows(rows,chartRange);
-    if(data.length<2){ setText('chartRangeFoot','Not enough observations to draw this range'); return; }
-
-    const W=760,H=260,left=52,right=18,top=18,bottom=34;
-    const x0=left,x1=W-right,y0=top,y1=H-bottom;
-    const vals=data.map(d=>d.value);
-    const min=Math.min(...vals),max=Math.max(...vals);
-    const pad=Math.max((max-min)*0.16,0.025);
-    const lo=min-pad,hi=max+pad,span=Math.max(hi-lo,0.05);
-    const t0=dateMs(data[0].date),t1=dateMs(data[data.length-1].date);
-    const timeSpan=Math.max(t1-t0,86400000);
-    const x=d=>x0+((dateMs(d.date)-t0)/timeSpan)*(x1-x0);
-    const y=v=>y1-((v-lo)/span)*(y1-y0);
-
-    const points=data.map(d=>x(d).toFixed(2)+','+y(d.value).toFixed(2));
-    const linePath='M '+points.join(' L ');
-    const areaPath=linePath+' L '+x(data[data.length-1]).toFixed(2)+','+y1+' L '+x(data[0]).toFixed(2)+','+y1+' Z';
-    $('chartLine').setAttribute('d',linePath);
-    $('chartArea').setAttribute('d',areaPath);
-
-    const grid=$('chartGrid'),axes=$('chartAxes'),pts=$('chartPoints');
-    grid.replaceChildren(); axes.replaceChildren(); pts.replaceChildren();
-
-    const yTicks=5;
-    for(let i=0;i<yTicks;i++){
-      const yy=y0+i*(y1-y0)/(yTicks-1);
-      const value=hi-i*(hi-lo)/(yTicks-1);
-      grid.appendChild(svgEl('line',{x1:x0,x2:x1,y1:yy,y2:yy,class:'chart-grid'}));
-      const label=svgEl('text',{x:x0-8,y:yy+4,'text-anchor':'end',class:'chart-axis'});
-      label.textContent=value.toFixed(2)+'%'; axes.appendChild(label);
+    const meta=latestSession?.meta,open=core.number(meta?.open),previous=core.number(meta?.previousClose),zone=chartSettings.zone/100;
+    const values=data.flatMap(p=>chartMode==='candle'?[p.low,p.high]:[p.value]);
+    if(chartSettings.open&&Number.isFinite(open))values.push(open);
+    if(chartSettings.previous&&Number.isFinite(previous))values.push(previous);
+    if(chartSettings.zones&&Number.isFinite(open))values.push(open-zone,open+zone);
+    const min=Math.min(...values),max=Math.max(...values),pad=Math.max((max-min)*.12,.012),lo=min-pad,hi=max+pad;
+    const y=v=>y1-(v-lo)/(hi-lo)*(y1-y0),spacing=(x1-x0)/Math.max(data.length,1);
+    const positions=new Map(data.map((p,i)=>[p,i])),x=p=>x0+spacing*(positions.get(p)+.5);
+    const zones=$('chartZones'),grid=$('chartGrid'),axes=$('chartAxes');
+    if(chartSettings.zones&&Number.isFinite(open)){
+      const red=Math.min(y1,Math.max(y0,y(open+zone))),green=Math.min(y1,Math.max(y0,y(open-zone)));
+      zones.append(svgEl('rect',{x:x0,y:y0,width:x1-x0,height:red-y0,fill:'var(--down)',opacity:'.10'}),svgEl('rect',{x:x0,y:green,width:x1-x0,height:y1-green,fill:'var(--up)',opacity:'.10'}));
+      for(const [value,text,color] of [[open+zone,'RED ZONE','var(--down)'],[open-zone,'GREEN ZONE','var(--up)']]){const yy=y(value);grid.append(svgEl('line',{x1:x0,x2:x1,y1:yy,y2:yy,stroke:color,'stroke-dasharray':'2 4',opacity:'.55'}));const label=svgEl('text',{x:x1-3,y:yy-4,'text-anchor':'end',class:'chart-axis',style:'fill:'+color+';font-size:8px'});label.textContent=text;axes.append(label);}
     }
-
-    // Latest and previous-close guide lines (market-desk style).
-    const latest=data[data.length-1],prev=data[data.length-2];
-    const latestLine=svgEl('line',{x1:x0,x2:x1,y1:y(latest.value),y2:y(latest.value),stroke:'var(--c-rates)','stroke-width':'1.1','vector-effect':'non-scaling-stroke',opacity:'.65'});
-    const prevLine=svgEl('line',{x1:x0,x2:x1,y1:y(prev.value),y2:y(prev.value),stroke:'var(--c-cal)','stroke-width':'1','stroke-dasharray':'5 4','vector-effect':'non-scaling-stroke',opacity:'.65'});
-    grid.appendChild(prevLine); grid.appendChild(latestLine);
-
-    const labelCount=chartRange==='sixmonth'?5:chartRange==='month'?4:3;
-    const idx=[];
-    for(let i=0;i<labelCount;i++) idx.push(Math.round(i*(data.length-1)/(labelCount-1)));
-    [...new Set(idx)].forEach((i,pos,arr)=>{
-      const label=svgEl('text',{x:x(data[i]),y:H-10,'text-anchor':pos===0?'start':pos===arr.length-1?'end':'middle',class:'chart-axis'});
-      label.textContent=fmtDate(data[i].date,chartRange); axes.appendChild(label);
-    });
-
-    const maxDots=chartRange==='sixmonth'?24:40;
-    const step=Math.max(1,Math.ceil(data.length/maxDots));
-    data.forEach((d,i)=>{
-      if(i%step!==0 && i!==data.length-1) return;
-      pts.appendChild(svgEl('circle',{cx:x(d),cy:y(d.value),r:chartRange==='live'?3:2.2,class:'chart-point'}));
-    });
-
-    const delta=latest.value-prev.value;
-    setText('chartLatest',pct(latest.value));
-    setText('chartQuoteValue',pct(latest.value));
-    setText('chartQuotePrev','Prev. '+pct(prev.value));
-    const q=$('chartQuoteChange');
-    if(q){
-      q.textContent=(delta>0?'+':'')+delta.toFixed(3);
-      q.classList.remove('up','down','flat');
-      q.classList.add(Math.abs(delta)<0.0005?'flat':delta>0?'down':'up');
+    for(let i=0;i<5;i++){const yy=y0+(y1-y0)*i/4,value=hi-(hi-lo)*i/4;grid.append(svgEl('line',{x1:x0,x2:x1,y1:yy,y2:yy,class:'chart-grid'}));const label=svgEl('text',{x:x0-6,y:yy+4,'text-anchor':'end',class:'chart-axis'});label.textContent=value.toFixed(2)+'%';axes.append(label);}
+    const references=$('chartReferences');
+    for(const [enabled,value,label,color,dash] of [[chartSettings.previous,previous,'Prev','var(--ink-soft)','5 4'],[chartSettings.open,open,'Open','var(--c-rates)','2 3']]){
+      if(!enabled||!Number.isFinite(value))continue;const yy=y(value);references.append(svgEl('line',{x1:x0,x2:x1,y1:yy,y2:yy,stroke:color,'stroke-width':1,'stroke-dasharray':dash,'vector-effect':'non-scaling-stroke'}));const t=svgEl('text',{x:label==='Prev'?x1-3:x0+4,y:yy-4,'text-anchor':label==='Prev'?'end':'start',class:'chart-axis',style:'fill:'+color+';font-size:9px'});t.textContent=label+' '+value.toFixed(3);references.append(t);
     }
-
-    const labels={
-      week:'Weekly view · official daily 10-Year Treasury observations',
-      month:'Monthly view · official daily 10-Year Treasury observations',
-      sixmonth:'6-month view · official/verified 10-Year Treasury history'
-    };
-    setText('chartRangeLabel',labels[chartRange]);
-    const feet={week:'Latest 1 week',month:'Latest 1 month',sixmonth:'Latest 6 months'};
-    setText('chartRangeFoot',feet[chartRange]+' · '+chartSource);
-
-    const hit=$('chartHit'),tip=$('chartTip'),hoverLine=$('chartHoverLine'),hoverDot=$('chartHoverDot');
-    hit.onmousemove=evt=>{
-      const rect=svg.getBoundingClientRect();
-      const mouseX=((evt.clientX-rect.left)/rect.width)*W;
-      let best=0,bestDist=Infinity;
-      data.forEach((d,i)=>{ const dist=Math.abs(x(d)-mouseX); if(dist<bestDist){best=i;bestDist=dist;} });
-      const d=data[best],cx=x(d),cy=y(d.value);
-      hoverLine.setAttribute('x1',cx);hoverLine.setAttribute('x2',cx);hoverLine.style.display='block';
-      hoverDot.setAttribute('cx',cx);hoverDot.setAttribute('cy',cy);hoverDot.style.display='block';
-      tip.innerHTML='<div>'+fmtDate(d.date,'day')+'</div><strong>'+d.value.toFixed(3)+'%</strong>';
-      tip.style.display='block';
-      tip.style.left=Math.min(Math.max((cx/W)*100,3),78)+'%';
-      tip.style.top=Math.max((cy/H)*100-8,6)+'%';
-    };
-    hit.onmouseleave=()=>{hoverLine.style.display='none';hoverDot.style.display='none';tip.style.display='none';};
+    if(chartMode==='candle'){
+      const width=Math.max(.6,Math.min(10,spacing*.62));
+      data.forEach(p=>{const cx=x(p),color=p.close>p.open?'var(--down)':p.close<p.open?'var(--up)':'var(--ink-soft)',bodyTop=Math.min(y(p.open),y(p.close)),bodyHeight=Math.max(1,Math.abs(y(p.open)-y(p.close)));const candle=svgEl('g',{class:'treasury-candle','data-open':p.open,'data-high':p.high,'data-low':p.low,'data-close':p.close});candle.append(svgEl('line',{x1:cx,x2:cx,y1:y(p.high),y2:y(p.low),stroke:color,'stroke-width':1,'vector-effect':'non-scaling-stroke'}),svgEl('rect',{x:cx-width/2,y:bodyTop,width,height:bodyHeight,fill:color}));$('chartCandles').append(candle);});
+    }else{
+      const line='M '+data.map(p=>x(p).toFixed(2)+','+y(p.value).toFixed(2)).join(' L ');$('chartLine').setAttribute('d',line);$('chartArea').setAttribute('d',line+' L '+x(data.at(-1))+','+y1+' L '+x(data[0])+','+y1+' Z');
+      const step=Math.max(1,Math.ceil(data.length/45));data.forEach((p,i)=>{if(i%step===0||i===data.length-1)$('chartPoints').append(svgEl('circle',{cx:x(p),cy:y(p.value),r:i===data.length-1?3:1.7,class:'chart-point'}));});
+    }
+    const labelCount=W<400?3:5,indices=[...new Set(Array.from({length:labelCount},(_,i)=>Math.round(i*(data.length-1)/(labelCount-1))))];
+    indices.forEach((i,pos)=>{const p=data[i],label=svgEl('text',{x:x(p),y:250,'text-anchor':pos===0?'start':pos===indices.length-1?'end':'middle',class:'chart-axis'});label.textContent=intraday&&range.sessions===1?fmtEtTime(p.ts):usesYahoo?fmtEtDate(p.ts):fmtDate(p.date);axes.append(label);});
+    const last=data.at(-1),limited=!intraday&&((usesYahoo?(data.at(-1).ts-data[0].ts)*1000:dateMs(data.at(-1).date)-dateMs(data[0].date))<(range.days-8)*86400000);
+    const missing=chartMode==='candle'&&total>data.length?' · '+(total-data.length)+' incomplete OHLC bars omitted':'';
+    setText('chartRangeFoot',(usesYahoo?fmtEtDate(last.ts)+' '+(intraday?fmtEtTime(last.ts)+' ET':'daily observation'):fmtDate(last.date)+' daily close')+(limited?' · limited history':'')+missing+(chartErrors.has(chartRange)?' · cached; refresh unavailable':''));setText('chartLatest',valueText(last.value));
+    const hit=$('chartHit'),tip=$('chartTip');
+    const hover=evt=>{const rect=svg.getBoundingClientRect(),px=(evt.clientX-rect.left)/rect.width*W,index=Math.max(0,Math.min(data.length-1,Math.round((px-x0)/spacing-.5))),p=data[index],cx=x(p),cy=y(p.value);$('chartHoverLine').setAttribute('x1',cx);$('chartHoverLine').setAttribute('x2',cx);$('chartHoverLine').style.display='block';$('chartHoverDot').setAttribute('cx',cx);$('chartHoverDot').setAttribute('cy',cy);$('chartHoverDot').style.display='block';tip.replaceChildren();const date=document.createElement('div');date.textContent=usesYahoo?fmtEtDate(p.ts)+(intraday?' · '+fmtEtTime(p.ts)+' ET':''):fmtDate(p.date);tip.append(date);for(const [label,value] of chartMode==='candle'?[['O',p.open],['H',p.high],['L',p.low],['C',p.close]]:[['Yield',p.value]]){const line=document.createElement('div');line.textContent=label+' '+valueText(value);tip.append(line);}tip.style.display='block';tip.style.left=Math.max(6,Math.min(cx/W*rect.width+8,rect.width-tip.offsetWidth-6))+'px';tip.style.top=Math.max(6,Math.min(cy/H*rect.height,rect.height-tip.offsetHeight-6))+'px';};
+    hit.onpointermove=hover;hit.onpointerdown=hover;hit.onpointerleave=()=>['chartTip','chartHoverLine','chartHoverDot'].forEach(id=>$(id).style.display='none');
   }
-
-  async function loadIntradayData(){
-    const r=await fetch('/api/treasury-intraday',{cache:'no-store',headers:{'accept':'application/json'}});
-    if(!r.ok) throw new Error('Intraday Treasury service returned '+r.status);
-    const data=await r.json();
-    if(!data || data.status!=='live' || !Array.isArray(data.points) || data.points.length<2) throw new Error(data?.error||'Intraday Treasury response was incomplete');
-    return data;
-  }
-
-  async function refreshIntraday({silent=false}={}){
-    if(inRestrictedPreview || location.protocol==='file:') return false;
-    if(!silent) setText('chartRangeFoot','Refreshing intraday 10-Year Treasury session…');
-    try{
-      const data=await loadIntradayData();
-      intradaySession=data; intradayLastFetch=Date.now(); intradayError='';
-      if(chartRange==='live'||chartRange==='day') renderIntradayChart(data);
+  async function fetchChartRange(range){
+    if(chartPending.has(range))return chartPending.get(range);
+    const pending=(async()=>{try{
+      const response=await fetch('/api/treasury-intraday?range='+range,{cache:'no-store',headers:{accept:'application/json'}});if(!response.ok)throw new Error('Treasury service returned '+response.status);const data=await response.json();if(data.status!=='live'||!Array.isArray(data.points)||!data.points.length)throw new Error(data.error||'No source observations');
+      chartCache.set(range,{data,fetchedAt:Date.now()});chartErrors.delete(range);
+      if(chartRanges[range].minutes&&(!latestSession||core.number(data.meta?.regularMarketTime)>=core.number(latestSession.meta?.regularMarketTime))){latestSession=data;sessionFailed=false;}
       return true;
-    }catch(err){
-      intradayError='Intraday source unavailable · '+(err&&err.message?err.message:'unknown error');
-      if(chartRange==='live'||chartRange==='day') renderTreasuryChart(chartHistory);
-      return false;
-    }
+    }catch(error){chartErrors.set(range,error.message||'Feed unavailable');if(range==='day')sessionFailed=true;return false;}finally{chartPending.delete(range);renderTreasuryChart(chartHistory);}})();chartPending.set(range,pending);return pending;
   }
-
+  function needsFetch(range){const cached=chartCache.get(range);return !cached||Date.now()-cached.fetchedAt>(chartRanges[range].minutes?45000:300000);}
+  async function refreshIntraday({silent=false}={}){
+    if(inRestrictedPreview||location.protocol==='file:')return false;
+    const ranges=new Set(['day']);if(isIntraday()||chartMode==='candle')ranges.add(chartRange);
+    return (await Promise.all([...ranges].map(fetchChartRange))).every(Boolean);
+  }
   function scheduleIntradayRefresh(){
-    if(intradayTimer) clearInterval(intradayTimer);
-    intradayTimer=setInterval(()=>{
-      if(document.visibilityState==='visible' && (chartRange==='live'||chartRange==='day')) refreshIntraday({silent:true});
-    },60000);
-    document.addEventListener('visibilitychange',()=>{
-      if(document.visibilityState==='visible' && (chartRange==='live'||chartRange==='day') && Date.now()-intradayLastFetch>45000) refreshIntraday({silent:true});
-    });
+    if(intradayTimer)clearInterval(intradayTimer);intradayTimer=setInterval(()=>{if(document.visibilityState==='visible')refreshIntraday({silent:true});},60000);
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&needsFetch('day'))refreshIntraday({silent:true});});
   }
-
-  function wireStickyOffset(){
-    const dock=document.querySelector('.nav-dock');
-    if(!dock) return;
-    const update=()=>document.documentElement.style.setProperty('--sticky-offset',(dock.getBoundingClientRect().height+14)+'px');
-    update();
-    window.addEventListener('resize',update,{passive:true});
-    if('ResizeObserver' in window){ new ResizeObserver(update).observe(dock); }
-  }
-
+  function wireStickyOffset(){const dock=document.querySelector('.nav-dock');if(!dock)return;const update=()=>document.documentElement.style.setProperty('--sticky-offset',(dock.getBoundingClientRect().height+14)+'px');update();window.addEventListener('resize',update,{passive:true});if('ResizeObserver' in window)new ResizeObserver(update).observe(dock);}
   function wireChartControls(){
-    const buttons=[...document.querySelectorAll('#chartRangeControls button')];
-    buttons.forEach(btn=>btn.addEventListener('click',()=>{
-      buttons.forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      chartRange=btn.dataset.range || 'week';
-      if(chartRange==='live'||chartRange==='day'){
-        renderTreasuryChart(chartHistory);
-        if(!intradaySession || Date.now()-intradayLastFetch>45000) refreshIntraday({silent:false});
-      }else{
-        renderTreasuryChart(chartHistory);
-      }
-    }));
+    if('ResizeObserver' in window)new ResizeObserver(()=>renderTreasuryChart(chartHistory)).observe($('treasuryChart'));else window.addEventListener('resize',()=>renderTreasuryChart(chartHistory),{passive:true});
+    const select=(selector,btn)=>document.querySelectorAll(selector).forEach(b=>{b.classList.toggle('active',b===btn);b.setAttribute('aria-pressed',String(b===btn));});
+    document.querySelectorAll('#chartRangeControls button').forEach(btn=>btn.addEventListener('click',()=>{chartRange=btn.dataset.range;select('#chartRangeControls button',btn);renderTreasuryChart(chartHistory);if((isIntraday()||chartMode==='candle')&&needsFetch(chartRange)&&!inRestrictedPreview&&location.protocol!=='file:')fetchChartRange(chartRange);}));
+    document.querySelectorAll('#chartModeControls button').forEach(btn=>btn.addEventListener('click',()=>{chartMode=btn.dataset.mode;select('#chartModeControls button',btn);renderTreasuryChart(chartHistory);if((isIntraday()||chartMode==='candle')&&needsFetch(chartRange)&&!inRestrictedPreview&&location.protocol!=='file:')fetchChartRange(chartRange);}));
+    const settings=$('chartSettings'),toggle=$('chartSettingsButton');toggle.onclick=()=>{settings.hidden=!settings.hidden;toggle.setAttribute('aria-expanded',String(!settings.hidden));if(!settings.hidden)$('showPrevious').focus();};
+    document.addEventListener('pointerdown',event=>{if(!settings.hidden&&!settings.contains(event.target)&&!toggle.contains(event.target)){settings.hidden=true;toggle.setAttribute('aria-expanded','false');}});
+    settings.addEventListener('keydown',event=>{if(event.key==='Escape'){settings.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.focus();}});
+    for(const [id,key] of [['showPrevious','previous'],['showOpen','open'],['showZones','zones']]){$(id).checked=!!chartSettings[key];$(id).onchange=()=>{chartSettings[key]=$(id).checked;try{localStorage.setItem('tdb-chart-settings-v2',JSON.stringify(chartSettings));}catch(_){}renderTreasuryChart(chartHistory);};}
+    for(const key of ['watch','elevated','zone'])$('threshold-'+key).value=chartSettings[key];
+    $('applyThresholds').onclick=()=>{const watch=Number($('threshold-watch').value),elevated=Number($('threshold-elevated').value),zone=Number($('threshold-zone').value);if(!(watch>0&&elevated>watch&&zone>elevated&&zone<=100)){setText('settingsStatus','Use 0 < Watch < Elevated < Zone ≤ 100 bps.');return;}Object.assign(chartSettings,{watch,elevated,zone});try{localStorage.setItem('tdb-chart-settings-v2',JSON.stringify(chartSettings));}catch(_){}setText('settingsStatus','Thresholds saved.');renderTreasuryChart(chartHistory);};
   }
+
 
   // ---------- Compact news expansion ----------
   function wireNews(){
@@ -968,7 +871,7 @@
     try{
       const data=await loadServerData();
       applyServerData(data);
-      if(chartRange==='live'||chartRange==='day') await refreshIntraday({silent:true});
+      await refreshIntraday({silent:true});
     }catch(err){
       applySnapshot();
       setText('updateMode','Verified Fallback');
