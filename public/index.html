@@ -257,13 +257,13 @@
   .treasury-module .intraday-strip[hidden]{display:flex;visibility:hidden}
   .intraday-chip{white-space:nowrap}
   #tag10y{height:34px;overflow:auto;line-height:17px}
-  #rates table{table-layout:fixed}
-  #rates th:first-child{width:60%}
-  #rates td.num{white-space:nowrap}
+  #ratesDetail table{table-layout:fixed}
+  #ratesDetail th:first-child{width:60%}
+  #ratesDetail td.num{white-space:nowrap}
   .chart-tip{min-width:0;max-width:calc(100% - 16px);transform:none;overflow-wrap:anywhere}
   @media(max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
   @media(max-width:680px){.treasury-module{--plot-height:232px}}
-  @media(max-width:480px){#rates th:first-child{width:50%}#rates td.num{font-size:.75rem}}
+  @media(max-width:480px){#ratesDetail th:first-child{width:50%}#ratesDetail td.num{font-size:.75rem}}
 
   /* Chart quote / market desk readout */
   .chart-quote{display:flex;align-items:baseline;gap:9px;margin:4px 0 0;flex-wrap:wrap}
@@ -339,6 +339,19 @@
 .session-stats,.t-watch-row{scrollbar-width:none}
 .session-stats::-webkit-scrollbar,.t-watch-row::-webkit-scrollbar{display:none}
 @media(max-width:480px){.treasury-module .chart-controls button{min-width:37px}}
+  /* Market overview: four benchmark tiles left; Treasury chart top right. */
+  .market-overview{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);grid-template-areas:"benchmarks treasury";align-items:start;gap:20px;margin:22px 0 24px;min-width:0}
+  .market-overview > .snapshot{grid-area:benchmarks;grid-template-columns:repeat(2,minmax(0,1fr));margin:0;align-items:stretch}
+  .market-overview .tile .val{flex-wrap:wrap;gap:4px 8px}
+  .market-overview > .treasury-card{grid-area:treasury;margin:0;min-width:0}
+  .treasury-card .treasury-module{margin-top:0}
+  #ratesDetail{min-width:0;scroll-margin-top:var(--sticky-offset,92px)}
+  @media(max-width:860px){
+    .market-overview{grid-template-columns:minmax(0,1fr);grid-template-areas:"treasury" "benchmarks"}
+  }
+  @media(max-width:480px){
+    .market-overview > .snapshot{grid-template-columns:minmax(0,1fr)}
+  }
 </style>
 </head>
 <body>
@@ -369,7 +382,8 @@
 </div>
 
 <div class="wrap">
-<div class="snapshot">
+<section class="market-overview" id="rates" aria-label="Market overview">
+<div class="snapshot" aria-label="Market benchmarks">
 <div class="tile" style="--tile-c:var(--c-rates)">
 <div class="label">10–Yr Treasury</div>
 <div class="val num"><span id="tile10y">4.83</span><span class="delta down" id="tile10yDelta">--</span></div>
@@ -391,32 +405,7 @@
 <div class="ctx">Little changed since this morning's session · still up from Tuesday's close as Fed hike odds firm on oil‑driven inflation angst</div>
 </div>
 </div>
-<div class="alert">
-<div class="glyph">▲</div>
-<div>
-<h3>Oil shock persists into the afternoon — reprice risk remains real</h3>
-<p>This morning's Middle East‑driven oil spike hasn't faded — it's extended. Brent crude has pushed further past $101/barrel this afternoon (a fresh session high after briefly topping $100 this morning) on continued reports of U.S. strikes on Iranian oil tankers in the Gulf of Oman and Iran‑backed Houthi attacks on Saudi energy infrastructure. The 10‑year Treasury has ticked up further to roughly 4.84%, above this morning's 4.81% and now a fresh cycle high, while the 2‑year is holding near 4.43%. MND's official rate index and the UMBS settle still haven't posted new numbers as of this refresh — both are due later today — but with yields still climbing into the afternoon, a modest-to-firm increase looks likely once today's official print lands. A separate poll of economists cited in today's coverage shows roughly 30% now expect a Fed rate hike at the Sept 15–16 meeting, up from just 10% in August, consistent with the broader move toward higher hike odds. With August PPI (Thu 9/10) and CPI (Fri 9/11) still to come, today remains a reasonable day to proactively check in with borrowers who have a lock decision on the table for anything closing in the next one to two weeks — not a reason to panic on longer‑dated closings, but worth watching closely into the close.</p>
-</div>
-</div>
-<div class="grid">
-<!-- LEFT: Rates & MBS -->
-<div id="rates">
-<div class="card">
-<h2><span class="dot" style="--card-c:var(--c-rates)"></span>Rates &amp; MBS Pricing</h2>
-<p class="sub">Key benchmarks mortgage pricing tracks most closely</p>
-<table>
-<thead><tr><th>Instrument</th><th>Level</th><th>Chg</th></tr></thead>
-<tbody>
-<tr><td class="instr">30‑Yr Fixed<span class="tag">MND daily index, Tue 9/8 4pm ET — new print due this afternoon</span></td><td class="num">6.89%</td><td class="num flat">unch.</td></tr>
-<tr><td class="instr">15‑Yr Fixed<span class="tag">MND daily index, Tue 9/8 4pm ET — new print due this afternoon</span></td><td class="num">6.49%</td><td class="num flat">unch.</td></tr>
-<tr><td class="instr">Freddie Mac PMMS<span class="tag" id="pmmsTag">latest weekly average</span></td><td class="num" id="pmms30">6.71%</td><td class="num flat" id="pmms30Delta">--</td></tr>
-<tr><td class="instr">UMBS 5.5<span class="tag">30yr coupon, confirmed settle Tue 9/8 — new settle due this afternoon</span></td><td class="num">98‑22</td><td class="num down">−0‑06</td></tr>
-<tr><td class="instr">UMBS 6.0<span class="tag">30yr coupon, confirmed settle Tue 9/8 — new settle due this afternoon</span></td><td class="num">101‑00</td><td class="num down">−0‑01</td></tr>
-<tr><td class="instr">2‑Yr Treasury<span class="tag" id="tag2y">latest official daily close</span></td><td class="num" id="rate2y">4.43%</td><td class="num down" id="rate2yDelta">--</td></tr>
-<tr><td class="instr">10‑Yr Treasury<span class="tag" id="tag10y">latest official daily close</span></td><td class="num" id="rate10y">4.83%</td><td class="num down" id="rate10yDelta">--</td></tr>
-<tr><td class="instr">30‑Yr Treasury<span class="tag" id="tag30y">latest official daily close</span></td><td class="num" id="rate30y">5.28%</td><td class="num down" id="rate30yDelta">--</td></tr>
-</tbody>
-</table>
+<div class="card treasury-card" id="treasuryPanel">
 <section class="treasury-module" aria-label="10-Year Treasury chart">
 <div class="spark-head">
 <div>
@@ -436,8 +425,8 @@
 </div>
 <div class="chart-mode-row">
 <div class="chart-controls chart-mode-controls" id="chartModeControls" role="group" aria-label="Chart type">
-<button class="active" aria-pressed="true" data-mode="line" type="button">Line</button>
-<button aria-pressed="false" data-mode="candle" type="button">Candlestick</button>
+<button aria-pressed="false" data-mode="line" type="button">Line</button>
+<button class="active" aria-pressed="true" data-mode="candle" type="button">Candlestick</button>
 </div>
 <button id="chartSettingsButton" class="chart-settings-button" aria-expanded="false" aria-controls="chartSettings" type="button">⚙ Settings</button>
 </div>
@@ -477,6 +466,34 @@
 <div class="intraday-strip" id="intradayStrip" aria-label="Session checkpoints; scroll for more" tabindex="0" hidden></div>
 </div>
 </section>
+</div>
+</section>
+<div class="alert" id="marketAlert">
+<div class="glyph">▲</div>
+<div>
+<h3>Oil shock persists into the afternoon — reprice risk remains real</h3>
+<p>This morning's Middle East‑driven oil spike hasn't faded — it's extended. Brent crude has pushed further past $101/barrel this afternoon (a fresh session high after briefly topping $100 this morning) on continued reports of U.S. strikes on Iranian oil tankers in the Gulf of Oman and Iran‑backed Houthi attacks on Saudi energy infrastructure. The 10‑year Treasury has ticked up further to roughly 4.84%, above this morning's 4.81% and now a fresh cycle high, while the 2‑year is holding near 4.43%. MND's official rate index and the UMBS settle still haven't posted new numbers as of this refresh — both are due later today — but with yields still climbing into the afternoon, a modest-to-firm increase looks likely once today's official print lands. A separate poll of economists cited in today's coverage shows roughly 30% now expect a Fed rate hike at the Sept 15–16 meeting, up from just 10% in August, consistent with the broader move toward higher hike odds. With August PPI (Thu 9/10) and CPI (Fri 9/11) still to come, today remains a reasonable day to proactively check in with borrowers who have a lock decision on the table for anything closing in the next one to two weeks — not a reason to panic on longer‑dated closings, but worth watching closely into the close.</p>
+</div>
+</div>
+<div class="grid">
+<!-- LEFT: Rates & MBS -->
+<div id="ratesDetail">
+<div class="card">
+<h2><span class="dot" style="--card-c:var(--c-rates)"></span>Rates &amp; MBS Pricing</h2>
+<p class="sub">Key benchmarks mortgage pricing tracks most closely</p>
+<table>
+<thead><tr><th>Instrument</th><th>Level</th><th>Chg</th></tr></thead>
+<tbody>
+<tr><td class="instr">30‑Yr Fixed<span class="tag">MND daily index, Tue 9/8 4pm ET — new print due this afternoon</span></td><td class="num">6.89%</td><td class="num flat">unch.</td></tr>
+<tr><td class="instr">15‑Yr Fixed<span class="tag">MND daily index, Tue 9/8 4pm ET — new print due this afternoon</span></td><td class="num">6.49%</td><td class="num flat">unch.</td></tr>
+<tr><td class="instr">Freddie Mac PMMS<span class="tag" id="pmmsTag">latest weekly average</span></td><td class="num" id="pmms30">6.71%</td><td class="num flat" id="pmms30Delta">--</td></tr>
+<tr><td class="instr">UMBS 5.5<span class="tag">30yr coupon, confirmed settle Tue 9/8 — new settle due this afternoon</span></td><td class="num">98‑22</td><td class="num down">−0‑06</td></tr>
+<tr><td class="instr">UMBS 6.0<span class="tag">30yr coupon, confirmed settle Tue 9/8 — new settle due this afternoon</span></td><td class="num">101‑00</td><td class="num down">−0‑01</td></tr>
+<tr><td class="instr">2‑Yr Treasury<span class="tag" id="tag2y">latest official daily close</span></td><td class="num" id="rate2y">4.43%</td><td class="num down" id="rate2yDelta">--</td></tr>
+<tr><td class="instr">10‑Yr Treasury<span class="tag" id="tag10y">latest official daily close</span></td><td class="num" id="rate10y">4.83%</td><td class="num down" id="rate10yDelta">--</td></tr>
+<tr><td class="instr">30‑Yr Treasury<span class="tag" id="tag30y">latest official daily close</span></td><td class="num" id="rate30y">5.28%</td><td class="num down" id="rate30yDelta">--</td></tr>
+</tbody>
+</table>
 <div class="byline">Sources: <a href="https://finance.yahoo.com/quote/%5ETNX/" rel="noopener" target="_blank">Yahoo Finance / Cboe ^TNX intraday</a> · <a href="https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve" rel="noopener" target="_blank">U.S. Treasury daily par yield curve</a> · <a href="https://fred.stlouisfed.org/series/DGS10" rel="noopener" target="_blank">FRED DGS10</a> · <a href="https://www.freddiemac.com/pmms" rel="noopener" target="_blank">Freddie Mac PMMS</a> · <a href="https://www.mba.org/news-and-research/newsroom/news/2026/09/23/mortgage-applications-decrease-in-latest-mba-weekly-survey" rel="noopener" target="_blank">MBA Weekly Applications Survey</a>. Yahoo Finance/Cboe ^TNX supplies the latest publicly available intraday 10-Year Treasury yield path for 1D/2D/5D; Treasury supplies the official daily curve; FRED supplies the daily line-chart history; Yahoo/Cboe supplies daily OHLC for candlesticks; Freddie Mac supplies the weekly PMMS benchmark; MBA supplies weekly application activity. The dashboard now reads these sources through a same-origin Netlify server-side aggregator, which avoids browser cross-origin restrictions and preserves a verified fallback if an upstream source is temporarily unavailable. MBS/MND values remain separately labeled because the free public feed is not dependable enough to treat as a live source.</div>
 </div>
 </div>
@@ -640,7 +657,8 @@
   // ---------- Treasury chart: one fixed viewport for both renderers ----------
   const core=window.TDBTreasuryCore;
   const chartRanges={day:{label:'1D',sessions:1,minutes:10},twoday:{label:'2D',sessions:2,minutes:15},fiveday:{label:'5D',sessions:5,minutes:30},month:{label:'1M',days:31},threemonth:{label:'3M',days:92},sixmonth:{label:'6M',days:183},year:{label:'1Y',days:366}};
-  let chartHistory=FALLBACK.fred.slice(),chartRange='day',chartMode='line',chartSource='embedded verified FRED observations';
+  let chartHistory=FALLBACK.fred.slice(),chartRange='day',chartMode='candle',chartSource='embedded verified FRED observations';
+  try{const savedMode=localStorage.getItem('tdb-chart-mode-v1');if(savedMode==='line'||savedMode==='candle')chartMode=savedMode;}catch(_){}
   let latestSession=null,sessionFailed=false,intradayTimer=null;
   const chartCache=new Map(),chartPending=new Map(),chartErrors=new Map();
   const isIntraday=()=>!!chartRanges[chartRange].minutes;
@@ -752,8 +770,9 @@
   function wireChartControls(){
     if('ResizeObserver' in window)new ResizeObserver(()=>renderTreasuryChart(chartHistory)).observe($('treasuryChart'));else window.addEventListener('resize',()=>renderTreasuryChart(chartHistory),{passive:true});
     const select=(selector,btn)=>document.querySelectorAll(selector).forEach(b=>{b.classList.toggle('active',b===btn);b.setAttribute('aria-pressed',String(b===btn));});
+    select('#chartModeControls button',document.querySelector('#chartModeControls [data-mode="'+chartMode+'"]'));
     document.querySelectorAll('#chartRangeControls button').forEach(btn=>btn.addEventListener('click',()=>{chartRange=btn.dataset.range;select('#chartRangeControls button',btn);renderTreasuryChart(chartHistory);if((isIntraday()||chartMode==='candle')&&needsFetch(chartRange)&&!inRestrictedPreview&&location.protocol!=='file:')fetchChartRange(chartRange);}));
-    document.querySelectorAll('#chartModeControls button').forEach(btn=>btn.addEventListener('click',()=>{chartMode=btn.dataset.mode;select('#chartModeControls button',btn);renderTreasuryChart(chartHistory);if((isIntraday()||chartMode==='candle')&&needsFetch(chartRange)&&!inRestrictedPreview&&location.protocol!=='file:')fetchChartRange(chartRange);}));
+    document.querySelectorAll('#chartModeControls button').forEach(btn=>btn.addEventListener('click',()=>{chartMode=btn.dataset.mode;try{localStorage.setItem('tdb-chart-mode-v1',chartMode);}catch(_){}select('#chartModeControls button',btn);renderTreasuryChart(chartHistory);if((isIntraday()||chartMode==='candle')&&needsFetch(chartRange)&&!inRestrictedPreview&&location.protocol!=='file:')fetchChartRange(chartRange);}));
     const settings=$('chartSettings'),toggle=$('chartSettingsButton');toggle.onclick=()=>{settings.hidden=!settings.hidden;toggle.setAttribute('aria-expanded',String(!settings.hidden));if(!settings.hidden)$('showPrevious').focus();};
     document.addEventListener('pointerdown',event=>{if(!settings.hidden&&!settings.contains(event.target)&&!toggle.contains(event.target)){settings.hidden=true;toggle.setAttribute('aria-expanded','false');}});
     settings.addEventListener('keydown',event=>{if(event.key==='Escape'){settings.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.focus();}});
