@@ -352,6 +352,57 @@
   @media(max-width:480px){
     .market-overview > .snapshot{grid-template-columns:minmax(0,1fr)}
   }
+  /* Compact masthead, one status row, and a fully occupied overview. */
+  .top-inner{padding:12px 20px;flex-wrap:nowrap}
+  .nav-inner{max-width:1180px;margin:0 auto;padding:8px 20px;display:flex;flex-wrap:wrap;align-items:center;gap:7px 14px}
+  .nav-dock .quicknav{padding:0;margin:0;flex:0 1 auto}
+  .nav-dock .data-status{padding:0;margin:0;max-width:none;min-width:0;flex:1 1 350px;gap:7px;font-size:.69rem;white-space:nowrap}
+  #dataStatusText{min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .status-date{color:var(--ink-soft)}
+  .status-mode{font-weight:700;color:var(--ink);border:1px solid var(--line);padding:2px 5px;border-radius:5px;background:var(--surface-2)}
+  .status-sources{font-size:.68rem;margin-left:2px}
+  .data-status button{flex:0 0 auto;padding:4px 8px;font-size:.68rem}
+  .market-overview{align-items:stretch;margin-top:18px}
+  .market-overview > .snapshot{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(4,minmax(0,1fr));min-height:0;container-type:inline-size}
+  .market-overview .tile{display:grid;grid-template-columns:minmax(110px,.85fr) minmax(0,1.4fr);grid-template-rows:auto 1fr;gap:4px 14px;padding:14px 16px;align-content:center}
+  .market-overview .tile .label{grid-column:1;grid-row:1;margin:0;align-self:end;font-size:.67rem}
+  .market-overview .tile .val{grid-column:1;grid-row:2;align-content:start;align-items:baseline;gap:0 7px;min-width:0}
+  .market-overview .tile .delta{font-size:.74rem;line-height:1.3;max-width:100%}
+  .market-overview .tile .ctx{grid-column:2;grid-row:1 / span 2;align-self:center;margin:0;font-size:.74rem;line-height:1.5;min-width:0}
+  .treasury-card{container-type:inline-size}
+  .treasury-module{--chart-head:56px;--module-extra:236px;grid-template-rows:var(--chart-head) 32px var(--plot-height) 44px 72px;height:calc(var(--module-extra) + var(--plot-height));min-height:calc(var(--module-extra) + var(--plot-height));max-height:calc(var(--module-extra) + var(--plot-height))}
+  .treasury-module .spark-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start;overflow:visible}
+  .treasury-module .spark-head > div:first-child{min-width:0}
+  .treasury-module .spark-head .chart-controls{justify-content:flex-end;flex:0 0 auto;width:auto;align-self:start}
+  .treasury-module #chartRangeControls button{min-width:32px;padding:3px 5px;font-size:.67rem}
+  .treasury-module .chart-toolbar{grid-template-rows:32px;gap:0}
+  .chart-settings{top:32px}
+  .market-sources{margin-bottom:24px;padding-top:16px;border-top:1px solid var(--line);scroll-margin-top:var(--sticky-offset,92px)}
+  .market-sources h2{font-size:.88rem;margin:0 0 8px}
+  .market-sources .byline{font-size:.72rem;border:0;padding:0;margin:0}
+  .source-diagnostics{font-size:.72rem;color:var(--ink);overflow-wrap:anywhere}
+  @container(max-width:520px){
+    .treasury-module{--chart-head:88px;--module-extra:268px}
+    .treasury-module .spark-head{grid-template-columns:minmax(0,1fr);grid-template-rows:52px 32px;gap:4px}
+    .treasury-module .spark-head .chart-controls{width:100%;justify-content:flex-start}
+  }
+  @container(max-width:400px){.market-overview .tile .ctx{font-size:.7rem;line-height:1.45}}
+  @media(max-width:860px){
+    .market-overview > .snapshot{grid-template-rows:none;grid-auto-rows:auto;align-self:start;gap:10px}
+  }
+  @media(max-width:680px){
+    .top-inner{padding:12px 14px}
+    .nav-inner{display:block;padding:7px 14px}
+    .nav-dock .quicknav{padding:0 0 6px;width:100%}
+    .nav-dock .data-status{font-size:.65rem;gap:6px}
+    .status-date,.status-sources,.data-status .status-dot{display:none}
+    #dataStatusText{flex:1}
+  }
+  @media(max-width:480px){
+    .market-overview .tile{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto;padding:12px 14px}
+    .market-overview .tile .ctx{grid-column:1;grid-row:3;font-size:.74rem}
+  }
+.treasury-module .chart-meta .chart-sub{overflow:hidden;text-overflow:ellipsis}
 </style>
 </head>
 <body>
@@ -364,13 +415,11 @@
 <div class="sub">Mortgage Market Desk- provided by Michael Ross, NMLS 42104 with Mutual of Omaha Mortgage.</div>
 </div>
 </div>
-<div class="top-meta">
-<div class="date"><span class="live-dot"></span><span id="todayDate">Wednesday, September 9, 2026</span> · <span id="updateMode">Live Market Update</span></div>
-<div>Treasury, FRED history, Freddie Mac PMMS, and MBA data refresh through a Netlify server-side function. News, calendar, MBS/MND commentary and editorial summary remain separately dated/curated.</div>
-</div>
+
 </div>
 </header>
 <div class="nav-dock">
+<div class="nav-inner">
 <nav class="quicknav">
 <a href="#rates">Rates &amp; MBS</a>
 <a href="#calendar">Calendar</a>
@@ -378,7 +427,12 @@
 <a href="#summary">Market Summary</a>
 <a href="#floatlock">Float vs. Lock</a>
 </nav>
-<div aria-live="polite" class="data-status" id="dataStatus"><span class="status-dot"></span><span id="dataStatusText">Server data connection ready · loading latest verified sources…</span><button id="refreshDataBtn" type="button">Refresh data</button></div>
+<div aria-live="polite" class="data-status" id="dataStatus">
+<span class="status-dot" aria-hidden="true"></span><span class="status-date" id="todayDate">Mon, Nov 9</span>
+<span class="status-mode" id="updateMode">Loading</span><span id="dataStatusText">Checking sources…</span>
+<button id="refreshDataBtn" type="button">Refresh</button><a class="status-sources" href="#dataSources">Sources</a>
+</div>
+</div>
 </div>
 
 <div class="wrap">
@@ -412,8 +466,6 @@
 <div class="chart-title">10-Year Treasury</div><div class="chart-quote" id="chartQuote"><span class="chart-quote-value num" id="chartQuoteValue">4.95%</span><span class="chart-quote-change flat" id="chartQuoteChange">--</span><span class="chart-quote-prev" id="chartQuotePrev">Prev. 4.83%</span></div>
 
 </div>
-</div>
-<div class="chart-toolbar">
 <div aria-label="10-Year Treasury chart range" class="chart-controls" id="chartRangeControls" role="group">
 <button class="active" aria-pressed="true" data-range="day" type="button">1D</button>
 <button aria-pressed="false" data-range="twoday" type="button">2D</button>
@@ -423,6 +475,9 @@
 <button aria-pressed="false" data-range="sixmonth" type="button">6M</button>
 <button aria-pressed="false" data-range="year" type="button">1Y</button>
 </div>
+</div>
+<div class="chart-toolbar">
+
 <div class="chart-mode-row">
 <div class="chart-controls chart-mode-controls" id="chartModeControls" role="group" aria-label="Chart type">
 <button aria-pressed="false" data-mode="line" type="button">Line</button>
@@ -494,10 +549,21 @@
 <tr><td class="instr">30‑Yr Treasury<span class="tag" id="tag30y">latest official daily close</span></td><td class="num" id="rate30y">5.28%</td><td class="num down" id="rate30yDelta">--</td></tr>
 </tbody>
 </table>
-<div class="byline">Sources: <a href="https://finance.yahoo.com/quote/%5ETNX/" rel="noopener" target="_blank">Yahoo Finance / Cboe ^TNX intraday</a> · <a href="https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve" rel="noopener" target="_blank">U.S. Treasury daily par yield curve</a> · <a href="https://fred.stlouisfed.org/series/DGS10" rel="noopener" target="_blank">FRED DGS10</a> · <a href="https://www.freddiemac.com/pmms" rel="noopener" target="_blank">Freddie Mac PMMS</a> · <a href="https://www.mba.org/news-and-research/newsroom/news/2026/09/23/mortgage-applications-decrease-in-latest-mba-weekly-survey" rel="noopener" target="_blank">MBA Weekly Applications Survey</a>. Yahoo Finance/Cboe ^TNX supplies the latest publicly available intraday 10-Year Treasury yield path for 1D/2D/5D; Treasury supplies the official daily curve; FRED supplies the daily line-chart history; Yahoo/Cboe supplies daily OHLC for candlesticks; Freddie Mac supplies the weekly PMMS benchmark; MBA supplies weekly application activity. The dashboard now reads these sources through a same-origin Netlify server-side aggregator, which avoids browser cross-origin restrictions and preserves a verified fallback if an upstream source is temporarily unavailable. MBS/MND values remain separately labeled because the free public feed is not dependable enough to treat as a live source.</div>
+
+</div>
+<div class="card" id="mbaActivity">
+<h2><span class="dot" style="--card-c:var(--c-cal)"></span>Mortgage Market Activity</h2>
+<p class="sub" id="mbaSub">Latest MBA Weekly Applications Survey</p>
+<div class="mba-grid">
+<div class="mba-stat"><div class="k">Applications</div><div class="v" id="mbaComposite">--</div></div>
+<div class="mba-stat"><div class="k">Purchase</div><div class="v" id="mbaPurchase">--</div></div>
+<div class="mba-stat"><div class="k">Refi</div><div class="v" id="mbaRefi">--</div></div>
+<div class="mba-stat"><div class="k">30Y Contract</div><div class="v" id="mba30">--</div></div>
+</div>
+<div class="byline">Source: <a href="https://www.mba.org/news-and-research/newsroom/news/2026/09/23/mortgage-applications-decrease-in-latest-mba-weekly-survey" rel="noopener" target="_blank">Mortgage Bankers Association</a>. This panel is populated by the Netlify server-side market-data function and falls back to the last verified release only when MBA is temporarily unavailable. </div>
 </div>
 </div>
-<!-- RIGHT: Calendar + News -->
+<!-- RIGHT: Calendar -->
 <div>
 <div class="card" id="calendar">
 <h2><span class="dot" style="--card-c:var(--c-cal)"></span>Today's Calendar</h2>
@@ -521,17 +587,7 @@
 </div>
 <div class="byline">Source: <a href="https://tradingeconomics.com/calendar" rel="noopener" target="_blank">Trading Economics calendar</a> · <a href="https://www.bls.gov/schedule/" rel="noopener" target="_blank">BLS release schedule</a> · <a href="https://www.mba.org/news-and-research/research-and-economics/single-family-research/weekly-applications-survey" rel="noopener" target="_blank">MBA Weekly Applications Survey</a>.</div>
 </div>
-<div class="card" id="mbaActivity">
-<h2><span class="dot" style="--card-c:var(--c-cal)"></span>Mortgage Market Activity</h2>
-<p class="sub" id="mbaSub">Latest MBA Weekly Applications Survey</p>
-<div class="mba-grid">
-<div class="mba-stat"><div class="k">Applications</div><div class="v" id="mbaComposite">--</div></div>
-<div class="mba-stat"><div class="k">Purchase</div><div class="v" id="mbaPurchase">--</div></div>
-<div class="mba-stat"><div class="k">Refi</div><div class="v" id="mbaRefi">--</div></div>
-<div class="mba-stat"><div class="k">30Y Contract</div><div class="v" id="mba30">--</div></div>
-</div>
-<div class="byline">Source: <a href="https://www.mba.org/news-and-research/newsroom/news/2026/09/23/mortgage-applications-decrease-in-latest-mba-weekly-survey" rel="noopener" target="_blank">Mortgage Bankers Association</a>. This panel is populated by the Netlify server-side market-data function and falls back to the last verified release only when MBA is temporarily unavailable. </div>
-</div>
+
 
 </div>
 <!-- SUMMARY -->
@@ -609,6 +665,12 @@
 </div>
 </div>
 <footer class="legal">
+<section class="market-sources" id="dataSources" aria-label="Market data sources">
+<h2>Market data sources</h2>
+<div class="byline">Sources: <a href="https://finance.yahoo.com/quote/%5ETNX/" rel="noopener" target="_blank">Yahoo Finance / Cboe ^TNX intraday</a> · <a href="https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve" rel="noopener" target="_blank">U.S. Treasury daily par yield curve</a> · <a href="https://fred.stlouisfed.org/series/DGS10" rel="noopener" target="_blank">FRED DGS10</a> · <a href="https://www.freddiemac.com/pmms" rel="noopener" target="_blank">Freddie Mac PMMS</a> · <a href="https://www.mba.org/news-and-research/newsroom/news/2026/09/23/mortgage-applications-decrease-in-latest-mba-weekly-survey" rel="noopener" target="_blank">MBA Weekly Applications Survey</a>. Yahoo Finance/Cboe ^TNX supplies the latest publicly available intraday 10-Year Treasury yield path for 1D/2D/5D; Treasury supplies the official daily curve; FRED supplies the daily line-chart history; Yahoo/Cboe supplies daily OHLC for candlesticks; Freddie Mac supplies the weekly PMMS benchmark; MBA supplies weekly application activity. The dashboard now reads these sources through a same-origin Netlify server-side aggregator, which avoids browser cross-origin restrictions and preserves a verified fallback if an upstream source is temporarily unavailable. MBS/MND values remain separately labeled because the free public feed is not dependable enough to treat as a live source.</div>
+<p class="source-diagnostics" id="sourceDiagnostics">Source availability is checked when the page refreshes.</p>
+<p>Daily Treasury, FRED history, Freddie Mac PMMS, and MBA releases update independently. The chart identifies its selected source and observation time. News, calendar, MBS/MND commentary, and editorial summaries retain their own dates.</p>
+</section>
 <strong>FOR MORTGAGE LENDER USE.</strong> Rates, prices, and yields shown are market indices and third‑party data snapshots for general informational purposes only — they are illustrative, not a quote, and are subject to change without notice. They do not represent terms available to any specific borrower; actual rates, pricing, and eligibility depend on credit profile, loan program, property, and underwriting factors, and require review by a licensed loan officer. The Float vs. Lock Advisor is a directional, rules‑based gauge of same‑day market tone only — it is not individualized financial or legal advice, does not guarantee future pricing, and does not replace your own judgment or applicable lender lock policies. Before sharing any version of this page with clients or prospects, route the content through Compliance and Legal for review of rate‑related claims, required disclosures, and Fair Housing/ECOA/UDAAP considerations. Prepared by Michael Ross — NMLS #42104. Equal Housing Opportunity.
 </footer>
 <script src="treasury-core.js"></script>
@@ -634,7 +696,7 @@
   };
 
   const $ = id => document.getElementById(id);
-  const setText = (id,val) => { const el=$(id); if(el) el.textContent=val; };
+  const setText = (id,val) => { const el=$(id); if(el){el.textContent=val;if(id==='chartRangeLabel')el.title=val;} };
   const pct = n => Number.isFinite(Number(n)) ? Number(n).toFixed(2)+'%' : '--';
   const signed = n => { const v=Number(n); return Number.isFinite(v) ? (v>0?'+':'')+v.toFixed(2) : '--'; };
   const sourceState=[];
@@ -855,10 +917,11 @@
 
     const generated=data.generatedAt?new Date(data.generatedAt):new Date();
     const ok=Number(data.sourceCount||0);
-    setText('todayDate',generated.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'}));
-    setText('updateMode',(data.status==='live'?'Live Server Update':data.status==='partial'?'Partial Server Update':'Verified Fallback')+' · '+ok+'/4 sources');
+    setText('todayDate',generated.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}));
+    setText('updateMode',data.status==='live'?'Live':data.status==='partial'?'Partial':'Snapshot');
     const sourceBits=(data.sources||[]).map(x=>x.name+': '+(x.ok?'OK':'fallback'));
-    setText('dataStatusText',generated.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})+' · Netlify server · '+ok+'/4 sources refreshed'+(sourceBits.length?' · '+sourceBits.join(' · '):''));
+    setText('dataStatusText','Updated '+generated.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})+' · '+ok+'/4 sources');
+    setText('sourceDiagnostics',sourceBits.length?sourceBits.join(' · '):'Individual source details were not supplied.');
   }
 
   function applySnapshot(){
@@ -871,31 +934,33 @@
     setText('pmms30',pct(pmms.y30)); setText('pmmsTag','weekly average · '+pmms.date); setText('pmms30Delta','+0.05%');
     setText('mbaSub','MBA Weekly Applications Survey · '+mba.date); setText('mbaComposite',signed(mba.composite)+'%'); setText('mbaPurchase',signed(mba.purchase)+'%'); setText('mbaRefi',signed(mba.refi)+'%'); setText('mba30',pct(mba.rate30));
     chartHistory=FALLBACK.fred.slice(); chartSource='embedded verified FRED observations'; renderTreasuryChart(chartHistory);
-    const now=new Date(); setText('todayDate',now.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'}));
-    setText('updateMode',inRestrictedPreview?'Verified Snapshot · embedded preview':'Verified Snapshot · server loading');
-    setText('dataStatusText',inRestrictedPreview?'Embedded preview · verified snapshot shown':'Verified snapshot loaded · contacting Netlify market-data service…');
-    const btn=$('refreshDataBtn'); if(btn && inRestrictedPreview){btn.textContent='Refresh snapshot';btn.title='Embedded preview uses the verified snapshot and makes no external requests.';}
+    const now=new Date(); setText('todayDate',now.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}));
+    setText('updateMode','Snapshot');
+    setText('dataStatusText',inRestrictedPreview?'Saved data · preview':'Loading latest sources…');
+    setText('sourceDiagnostics','Saved fallback data is shown until sources refresh successfully.');
+    const btn=$('refreshDataBtn'); if(btn && inRestrictedPreview){btn.textContent='Refresh';btn.title='Embedded preview uses the verified snapshot and makes no external requests.';}
   }
 
   async function refresh(){
     const btn=$('refreshDataBtn');
     if(inRestrictedPreview || location.protocol==='file:'){
       applySnapshot();
-      setText('dataStatusText','Local/embedded preview · verified snapshot shown · server refresh runs on the Netlify-hosted site');
+      setText('dataStatusText','Saved data · local preview');
       return;
     }
     if(btn){btn.classList.add('busy');btn.textContent='Refreshing…';}
-    setText('dataStatusText','Refreshing from Netlify server…');
+    setText('dataStatusText','Refreshing sources…');
     try{
       const data=await loadServerData();
       applyServerData(data);
       await refreshIntraday({silent:true});
     }catch(err){
       applySnapshot();
-      setText('updateMode','Verified Fallback');
-      setText('dataStatusText','Server refresh unavailable · verified fallback shown · '+(err&&err.message?err.message:'unknown error'));
+      setText('updateMode','Snapshot');
+      setText('dataStatusText','Saved data · refresh unavailable');
+      setText('sourceDiagnostics','Latest refresh unavailable: '+(err?.message||'unknown error')+'. Saved fallback values are shown.');
     }finally{
-      if(btn){btn.classList.remove('busy');btn.textContent='Refresh data';}
+      if(btn){btn.classList.remove('busy');btn.textContent='Refresh';}
     }
   }
 
